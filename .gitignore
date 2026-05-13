@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+.env.local
+.tools/
+.tmp_docx_text/
+*.log
+*.docx

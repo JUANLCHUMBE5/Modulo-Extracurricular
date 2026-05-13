@@ -1,0 +1,33 @@
+{
+  "name": "modulo-extracurricular",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "api": "node server/excelApi.js",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@mantine/core": "^9.1.1",
+    "@mantine/dates": "^9.1.1",
+    "@mantine/hooks": "^9.1.1",
+    "@mantine/notifications": "^9.1.1",
+    "@vitejs/plugin-react": "latest",
+    "cors": "^2.8.6",
+    "date-fns": "^4.1.0",
+    "docx-preview": "^0.3.7",
+    "docxtemplater": "^3.68.7",
+    "exceljs": "^4.4.0",
+    "express": "^5.2.1",
+    "jspdf": "^4.2.1",
+    "jszip": "^3.10.1",
+    "lucide-react": "^1.14.0",
+    "multer": "^2.1.1",
+    "pizzip": "^3.2.0",
+    "react": "latest",
+    "react-dom": "latest",
+    "vite": "latest"
+  }
+}

@@ -1,0 +1,221 @@
+{
+  "categorias": [
+    "Academico",
+    "Ingles",
+    "Deportivo",
+    "Verano",
+    "Arte",
+    "Otro"
+  ],
+  "nextProgramaId": 4,
+  "nextCargaId": 1,
+  "nextDocumentoId": 1,
+  "estudiantes": {
+    "11112222": {
+      "dni": "11112222",
+      "codigoEstudiante": "EST-11112222",
+      "nombres": "Mateo Salazar Torres",
+      "sexo": "M",
+      "grado": "5 Primaria",
+      "seccion": "A",
+      "tipoAlumno": "Alumno interno",
+      "fechaNacimiento": "2015-09-22",
+      "estadoInscripcion": "No inscrito",
+      "apoderado": "Rosa Torres Vega",
+      "telefonoApoderado": "976543210"
+    },
+    "12345678": {
+      "dni": "12345678",
+      "codigoEstudiante": "EST-12345678",
+      "nombres": "Juan Perez Lopez",
+      "sexo": "M",
+      "grado": "3 Primaria",
+      "seccion": "B",
+      "tipoAlumno": "Alumno interno",
+      "fechaNacimiento": "2017-05-14",
+      "estadoInscripcion": "No inscrito",
+      "apoderado": "Carlos Perez Ramirez",
+      "telefonoApoderado": "987654321"
+    },
+    "22223333": {
+      "dni": "22223333",
+      "codigoEstudiante": "EST-22223333",
+      "nombres": "Camila Torres Ruiz",
+      "sexo": "F",
+      "grado": "4 Primaria",
+      "seccion": "C",
+      "tipoAlumno": "Alumno interno",
+      "fechaNacimiento": "2016-03-08",
+      "estadoInscripcion": "No inscrito",
+      "apoderado": "",
+      "telefonoApoderado": ""
+    }
+  },
+  "programas": [
+    {
+      "id": "REF-PRI-2026",
+      "nombre": "Reforzamiento Matematica",
+      "periodo": "escolar",
+      "categoria": "Academico",
+      "grupo": "Primaria 1, 2 y 3",
+      "horario": "Lunes y miercoles 3:20 p. m. - 4:50 p. m.",
+      "fechaInicio": "2026-03-10",
+      "fechaFin": "2026-12-15",
+      "cupos": 20,
+      "cuposOcupados": 8,
+      "costo": 70,
+      "modalidadCobro": "Mensual",
+      "responsable": "Prof. Ana Torres",
+      "tutora": "Srta. Lucia Vega",
+      "plantilla": "comunicado-reforzamiento.docx",
+      "plantillaBase64": "",
+      "plantillaVariables": [
+        "alumno",
+        "grado",
+        "seccion",
+        "apoderado",
+        "celular"
+      ],
+      "plantillaValidada": true,
+      "plantillaActualizadaEn": "2026-03-01T12:00:00.000Z",
+      "requisitos": "Traer cuaderno de ejercicios y cartuchera.",
+      "requiereUniforme": false,
+      "tallasPolo": [],
+      "tallasShort": [],
+      "estado": "Habilitado"
+    },
+    {
+      "id": "MAT-SEC-2026",
+      "nombre": "Matematica avanzada",
+      "periodo": "escolar",
+      "categoria": "Academico",
+      "grupo": "Secundaria 3, 4 y 5",
+      "horario": "Martes y jueves 4:00 p. m. - 5:30 p. m.",
+      "fechaInicio": "2026-03-10",
+      "fechaFin": "2026-12-15",
+      "cupos": 15,
+      "cuposOcupados": 15,
+      "costo": 90,
+      "modalidadCobro": "Unico",
+      "responsable": "Prof. Carlos Ruiz",
+      "tutora": "",
+      "plantilla": "",
+      "plantillaBase64": "",
+      "plantillaVariables": [],
+      "plantillaValidada": false,
+      "plantillaActualizadaEn": "",
+      "requisitos": "Rendir prueba diagnóstica de ingreso.",
+      "requiereUniforme": false,
+      "tallasPolo": [],
+      "tallasShort": [],
+      "estado": "Sin cupos"
+    },
+    {
+      "id": "DEP-GEN-2026",
+      "nombre": "Deportes generales",
+      "periodo": "escolar",
+      "categoria": "Deportivo",
+      "grupo": "Primaria y Secundaria",
+      "horario": "Viernes 3:00 p. m. - 5:00 p. m.",
+      "fechaInicio": "2026-03-10",
+      "fechaFin": "2026-12-15",
+      "cupos": 25,
+      "cuposOcupados": 10,
+      "costo": 50,
+      "modalidadCobro": "Mensual",
+      "responsable": "Prof. Miguel Soto",
+      "tutora": "Srta. Rosa Lima",
+      "plantilla": "ficha-deportes.docx",
+      "plantillaBase64": "",
+      "plantillaVariables": [
+        "alumno",
+        "grado",
+        "seccion",
+        "apoderado",
+        "celular"
+      ],
+      "plantillaValidada": true,
+      "plantillaActualizadaEn": "2026-03-01T12:00:00.000Z",
+      "requisitos": "Traer botella de agua y zapatillas deportivas.",
+      "requiereUniforme": true,
+      "tallasPolo": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "tallasShort": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "estado": "Habilitado"
+    }
+  ],
+  "invitadosPorPrograma": {
+    "REF-PRI-2026": [
+      {
+        "dni": "12345678",
+        "nombres": "Juan Perez Lopez",
+        "grado": "3 Primaria",
+        "seccion": "B",
+        "periodo": "escolar",
+        "estado": "Invitado"
+      },
+      {
+        "dni": "74521890",
+        "nombres": "Lucia Mendoza Paredes",
+        "grado": "3 Primaria",
+        "seccion": "B",
+        "periodo": "escolar",
+        "estado": "Invitado"
+      }
+    ],
+    "DEP-GEN-2026": [
+      {
+        "dni": "11112222",
+        "nombres": "Mateo Salazar Torres",
+        "grado": "5 Primaria",
+        "seccion": "A",
+        "periodo": "escolar",
+        "estado": "Invitado"
+      }
+    ]
+  },
+  "inscripciones": [],
+  "documentosGenerados": [],
+  "pagos": [],
+  "asistencias": [],
+  "historialCargas": [],
+  "usuarios": [
+    {
+      "id": "1",
+      "nombre": "Admin Principal",
+      "usuario": "admin",
+      "rol": "Administrador",
+      "estado": "Activo"
+    },
+    {
+      "id": "2",
+      "nombre": "Maria Secretaria",
+      "usuario": "secretaria",
+      "rol": "Secretaria",
+      "estado": "Activo"
+    },
+    {
+      "id": "3",
+      "nombre": "Jose Caja",
+      "usuario": "caja",
+      "rol": "Caja",
+      "estado": "Activo"
+    },
+    {
+      "id": "4",
+      "nombre": "Ana Coordinadora",
+      "usuario": "coordinacion",
+      "rol": "Coordinacion",
+      "estado": "Activo"
+    }
+  ]
+}
