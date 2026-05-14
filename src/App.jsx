@@ -3,7 +3,7 @@ import Login from "./components/Login/Login";
 import Coordinacion from "./modules/coordinacion/Coordinacion";
 import Secretaria from "./modules/secretaria/Secretaria";
 import Administrador from "./modules/administrador/Administrador";
-import Padres from "./modules/padres/Padres";
+import Padres from "./modules/padres";
 
 function App() {
   const [user, setUser] = useState(null);

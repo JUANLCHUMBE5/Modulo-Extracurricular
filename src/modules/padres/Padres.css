@@ -979,8 +979,9 @@
 }
 
 .padres-programs-coordination-panel {
-  grid-column: 1 / -1;
-  order: 5;
+  grid-column: auto;
+  order: 3;
+  align-self: start;
 }
 
 .padres-inline-loading {
@@ -995,7 +996,7 @@
 
 .padres-programs-list {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 12px;
 }
 
@@ -1965,6 +1966,36 @@
   background: #f6fffc;
 }
 
+.padres-program-panel .padres-empty {
+  min-height: 96px;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  place-items: center start;
+  gap: 6px 12px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  text-align: left;
+}
+
+.padres-program-panel .padres-empty svg {
+  grid-row: 1 / 3;
+  width: 20px;
+  height: 20px;
+}
+
+.padres-program-panel .padres-empty strong {
+  align-self: end;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.padres-program-panel .padres-empty p {
+  align-self: start;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
 .padres-program-details {
   display: grid;
   gap: 12px;
@@ -2160,6 +2191,10 @@
 
   .padres-program-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .padres-programs-coordination-panel {
+    grid-column: auto;
   }
 }
 
@@ -2449,5 +2484,332 @@
   .padres-hero h2,
   .padres-hero-with-banner h2 {
     font-size: 22px;
+  }
+}
+
+/* Parent portal responsive polish */
+.padres-main {
+  overflow-x: hidden;
+}
+
+.padres-header {
+  position: relative;
+  z-index: 3;
+  width: auto;
+}
+
+.padres-brand,
+.padres-header-actions,
+.padres-family-chip,
+.padres-logout-top {
+  min-width: 0;
+}
+
+.padres-family-chip strong,
+.padres-brand strong {
+  overflow-wrap: anywhere;
+}
+
+.padres-hero,
+.padres-hero-with-banner {
+  isolation: isolate;
+}
+
+.padres-hero-with-banner {
+  min-height: 205px;
+  display: flex;
+  align-items: center;
+  padding: 28px 46% 28px 0;
+  background:
+    var(--padres-banner) right bottom / min(590px, 56%) auto no-repeat,
+    #ffffff;
+}
+
+.padres-hero-copy {
+  width: 100%;
+  max-width: 470px;
+}
+
+.padres-hero h2,
+.padres-hero-with-banner h2 {
+  max-width: 440px;
+  text-wrap: balance;
+}
+
+.padres-hero-copy p,
+.padres-hero-with-banner .padres-hero-copy p {
+  max-width: 430px;
+}
+
+@media (max-width: 980px) {
+  .padres-main {
+    width: 100%;
+    padding-right: 18px;
+    padding-left: 18px;
+  }
+
+  .padres-header {
+    margin-right: -18px;
+    margin-left: -18px;
+    padding: 12px 18px;
+  }
+
+  .padres-hero-with-banner {
+    min-height: auto;
+    align-items: flex-start;
+    padding: 250px 0 18px;
+    background:
+      var(--padres-banner) center top / min(610px, 94vw) auto no-repeat,
+      #ffffff;
+  }
+
+  .padres-hero-copy {
+    max-width: 640px;
+  }
+}
+
+@media (max-width: 760px) {
+  .padres-main {
+    padding: 0 14px 112px;
+  }
+
+  .padres-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    margin: 0 -14px 10px;
+    padding: 10px 14px;
+    border-bottom: 1px solid #e7edf2;
+    box-shadow: 0 8px 20px rgba(23, 35, 49, 0.06);
+  }
+
+  .padres-brand {
+    gap: 9px;
+  }
+
+  .padres-brand-mark,
+  .padres-family-avatar {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    border-radius: 11px;
+    font-size: 12px;
+  }
+
+  .padres-brand strong {
+    font-size: 13px;
+    line-height: 1.15;
+  }
+
+  .padres-brand p {
+    margin-top: 1px;
+    font-size: 11px;
+    line-height: 1.2;
+  }
+
+  .padres-header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .padres-family-chip {
+    display: none;
+  }
+
+  .padres-logout-top {
+    width: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    padding: 0;
+    border-radius: 12px;
+  }
+
+  .padres-logout-top span {
+    display: none;
+  }
+
+  .padres-enrollment {
+    gap: 12px;
+  }
+
+  .padres-hero,
+  .padres-hero-with-banner {
+    min-height: auto;
+    margin: 0;
+    border-bottom: 1px solid #edf2f5;
+  }
+
+  .padres-hero-with-banner {
+    display: block;
+    padding: 150px 0 16px;
+    background:
+      var(--padres-banner) center top / min(360px, 100%) auto no-repeat,
+      #ffffff;
+  }
+
+  .padres-hero-copy {
+    max-width: none;
+    text-align: left;
+  }
+
+  .padres-eyebrow {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 10px;
+    line-height: 1.2;
+  }
+
+  .padres-hero h2,
+  .padres-hero-with-banner h2 {
+    max-width: 310px;
+    margin: 0 0 6px;
+    font-size: 24px;
+    line-height: 1.05;
+  }
+
+  .padres-hero-copy p,
+  .padres-hero-with-banner .padres-hero-copy p {
+    max-width: 330px;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .padres-payment-panel {
+    order: 1;
+  }
+
+  .padres-program-panel {
+    order: 2;
+  }
+
+  .padres-student-panel {
+    order: 3;
+  }
+}
+
+@media (max-width: 420px) {
+  .padres-main {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .padres-header {
+    margin-right: -12px;
+    margin-left: -12px;
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .padres-hero-with-banner {
+    padding-top: 132px;
+    background-size: min(330px, 100%) auto;
+  }
+
+  .padres-hero h2,
+  .padres-hero-with-banner h2 {
+    max-width: 280px;
+    font-size: 22px;
+  }
+}
+
+/* Tight mobile first viewport */
+@media (max-width: 760px) {
+  .padres-header {
+    margin-bottom: 6px;
+  }
+
+  .padres-hero,
+  .padres-hero-with-banner {
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eef3f6;
+  }
+
+  .padres-hero-with-banner {
+    padding-top: 112px;
+    background-position: center top;
+    background-size: min(330px, 96%) auto;
+  }
+
+  .padres-eyebrow {
+    margin-bottom: 4px;
+  }
+
+  .padres-hero h2,
+  .padres-hero-with-banner h2 {
+    margin-bottom: 5px;
+    max-width: 300px;
+  }
+
+  .padres-hero-copy p,
+  .padres-hero-with-banner .padres-hero-copy p {
+    line-height: 1.35;
+  }
+
+  .padres-left-column {
+    gap: 10px;
+  }
+
+  .padres-payment-panel {
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .padres-payment-status h2 {
+    margin-bottom: 4px;
+    font-size: 18px;
+  }
+
+  .padres-payment-status p {
+    margin-bottom: 8px;
+    line-height: 1.35;
+  }
+
+  .padres-payment-amount {
+    padding-top: 10px;
+  }
+
+  .padres-payment-amount strong {
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 420px) {
+  .padres-hero-with-banner {
+    padding-top: 102px;
+    background-size: min(305px, 96%) auto;
+  }
+}
+
+/* Compact empty program card on mobile */
+@media (max-width: 760px) {
+  .padres-program-panel .padres-empty {
+    min-height: 92px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    gap: 6px 10px;
+  }
+
+  .padres-program-panel .padres-empty svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .padres-program-panel .padres-empty strong {
+    align-self: end;
+    font-size: 13px;
+    line-height: 1.2;
+  }
+
+  .padres-program-panel .padres-empty p {
+    align-self: start;
+    margin: 0;
+    font-size: 11px;
+    line-height: 1.3;
   }
 }

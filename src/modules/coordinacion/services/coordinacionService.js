@@ -1,5 +1,5 @@
-import { mockDb, nextMockId, saveMockDb, syncMockDbFromStorage } from "../../services/localDbClient";
-import { fechaActualInput, fechaActualIso, normalizarFecha } from "../../services/dateService";
+import { mockDb, nextMockId, saveMockDb, syncMockDbFromStorage } from "../../../services/localDbClient";
+import { fechaActualInput, fechaActualIso, normalizarFecha } from "../../../services/dateService";
 
 const delay = (ms = 600) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -77,6 +77,52 @@ export async function crearPrograma(datos) {
     detalleCosto: datos.detalleCosto || "",
     detalleAlmuerzo: datos.detalleAlmuerzo || "",
     concesionarios: datos.concesionarios || "",
+  };
+
+  mockDb.programas.push(nuevo);
+  saveMockDb();
+  return conCuposDisponibles(nuevo);
+}
+
+export async function crearProgramaDesdeDocumento(datos) {
+  await delay(700);
+  await syncMockDbFromStorage();
+  finalizarProgramasVencidos();
+
+  if (!String(datos.nombre || "").trim()) throw new Error("Ingrese el nombre del programa.");
+  if (!datos.plantilla || !datos.plantillaBase64 || !datos.plantillaValidada) {
+    throw new Error("Suba un Word apto con variables antes de guardar.");
+  }
+
+  const correlativo = nextMockId("nextProgramaId");
+  const nuevo = {
+    ...datos,
+    id: `PROG-${String(correlativo).padStart(3, "0")}`,
+    periodo: normalizarPeriodo(datos.periodo || "escolar"),
+    categoria: datos.categoria || mockDb.categorias[0] || "General",
+    grupo: datos.grupo || "Por definir",
+    horario: datos.horario || "Por definir",
+    gradosAplicables: Array.isArray(datos.gradosAplicables) && datos.gradosAplicables.length
+      ? datos.gradosAplicables
+      : ["3 años", "4 años", "5 años", "1", "2", "3", "4", "5", "6"],
+    dias: Array.isArray(datos.dias) ? datos.dias : [],
+    horariosPorGrupo: Array.isArray(datos.horariosPorGrupo) ? datos.horariosPorGrupo : [],
+    fechaInicio: datos.fechaInicio || fechaActualInput(),
+    fechaFin: datos.fechaFin || fechaActualInput(),
+    cupos: Number(datos.cupos) > 0 ? Number(datos.cupos) : 1,
+    cuposOcupados: 0,
+    costo: Number(datos.costo) > 0 ? Number(Number(datos.costo).toFixed(2)) : 1,
+    modalidadCobro: datos.modalidadCobro || "Mensual",
+    estado: "Deshabilitado",
+    plantillaVariables: datos.plantillaVariables || [],
+    plantillaValidada: true,
+    requisitos: datos.requisitos || "",
+    comunicado: datos.comunicado || "",
+    detalleCosto: datos.detalleCosto || "",
+    detalleAlmuerzo: datos.detalleAlmuerzo || "",
+    concesionarios: datos.concesionarios || "",
+    requiereUniforme: Boolean(datos.requiereUniforme),
+    creadoDesdeDocumento: true,
   };
 
   mockDb.programas.push(nuevo);

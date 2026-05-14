@@ -1,0 +1,89 @@
+import { useState } from "react";
+import { BookOpen, FileText, X } from "lucide-react";
+
+function TemplateUploadField({
+  plantillaInputKey,
+  form,
+  programas,
+  variablesPlantillaRequeridas,
+  onSelect,
+  onRemove,
+  onAutoFill,
+  onUseExisting,
+  modoDocumentos = false,
+}) {
+  const [programaPlantilla, setProgramaPlantilla] = useState("");
+  const plantillasDisponibles = programas.filter((programa) =>
+    programa.id !== form.id && programa.plantilla && programa.plantillaBase64 && programa.plantillaValidada
+  );
+
+  function aplicarPlantillaExistente() {
+    if (!programaPlantilla) return;
+    onUseExisting(programaPlantilla);
+    setProgramaPlantilla("");
+  }
+
+  return (
+    <div className="coord-field coord-field-full">
+      <div className="coord-template-compact-row">
+        <div className="coord-template-file-control">
+          <label>{modoDocumentos ? "Subir documento Word" : "Documento Word"}</label>
+          <input className="coord-template-file" key={plantillaInputKey} type="file" accept=".docx" onChange={onSelect} />
+        </div>
+        {form.plantilla ? (
+          <div className="coord-template-state">
+            <div className="coord-template-file-name">
+              <FileText size={16} />
+              <span title={form.plantilla}>{form.plantilla}</span>
+            </div>
+            <span className={`coord-pill ${form.plantillaValidada ? "coord-pill-success" : "coord-pill-error"}`}>
+              {form.plantillaValidada ? "Validada" : "Pendiente"}
+            </span>
+            <button type="button" className="coord-remove-template-btn" onClick={onRemove}>
+              <X size={14} />
+              <span>Quitar plantilla</span>
+            </button>
+          </div>
+        ) : null}
+      </div>
+      {plantillasDisponibles.length ? (
+        <div className="coord-template-reuse">
+          <label>Usar plantilla de otro programa</label>
+          <div className="coord-template-reuse-row">
+            <select value={programaPlantilla} onChange={(event) => setProgramaPlantilla(event.target.value)}>
+              <option value="">Seleccione un programa</option>
+              {plantillasDisponibles.map((programa) => (
+                <option key={programa.id} value={programa.id}>
+                  {programa.nombre}
+                </option>
+              ))}
+            </select>
+            <button type="button" className="coord-template-autofill" onClick={aplicarPlantillaExistente} disabled={!programaPlantilla}>
+              Usar plantilla
+            </button>
+          </div>
+        </div>
+      ) : null}
+      {form.plantillaValidada ? (
+        <button type="button" className="coord-template-autofill" onClick={onAutoFill}>
+          <BookOpen size={15} />
+          <span>{modoDocumentos ? "Volver a leer documento" : "Autocompletar datos desde Word"}</span>
+        </button>
+      ) : null}
+      {form.plantilla && !modoDocumentos ? (
+        <div className="coord-template-vars">
+          {variablesPlantillaRequeridas.map((variable) => (
+            <span
+              className={`coord-template-var ${form.plantillaVariables.includes(variable.id) ? "is-ok" : ""}`}
+              key={variable.id}
+            >
+              {variable.label}
+            </span>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+export default TemplateUploadField;

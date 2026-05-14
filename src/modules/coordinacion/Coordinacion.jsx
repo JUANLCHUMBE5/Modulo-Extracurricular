@@ -8,17 +8,22 @@ import {
   Edit3, X, Eye, Upload, ToggleLeft, ToggleRight, Trash2, FileText
 } from "lucide-react";
 import {
-  listarProgramas, crearPrograma, editarPrograma, cambiarEstadoPrograma,
+  listarProgramas, crearPrograma, crearProgramaDesdeDocumento, editarPrograma, cambiarEstadoPrograma,
   eliminarPrograma,
   listarCategorias, crearCategoria, eliminarCategoria, listarInvitados,
   previsualizarCargaAlumnosMasiva, confirmarCargaAlumnos, obtenerActividadPrograma,
-} from "./coordinacionService";
+} from "./services/coordinacionService";
 import { fechaActualIso } from "../../services/dateService";
+import GradeSelector from "./components/GradeSelector";
+import { HorarioTabla, GradosTabla, VigenciaTabla, CuposTabla } from "./components/ProgramTableCells";
+import SummaryBox from "./components/SummaryBox";
+import TemplateUploadField from "./components/TemplateUploadField";
 import "./Coordinacion.css";
 
 const formInicial = {
   nombre: "", periodo: "escolar", categoria: "", grupo: "", horario: "",
   gradosAplicables: [], dias: [], horaInicio: "", horaFin: "",
+  almuerzoInicio: "", almuerzoFin: "",
   horariosPorGrupo: [],
   fechaInicio: "", fechaFin: "", cupos: "", costo: "", modalidadCobro: "Mensual",
   responsable: "", tutora: "", plantilla: "", plantillaBase64: "", plantillaVariables: [],
@@ -38,11 +43,29 @@ const horarioGrupoInicial = {
 };
 
 const variablesPlantillaRequeridas = [
-  { id: "alumno", label: "Alumno", aliases: ["alumno", "nombre_alumno", "nombre del alumno", "estudiante"] },
-  { id: "grado", label: "Grado", aliases: ["grado"] },
-  { id: "seccion", label: "Seccion", aliases: ["seccion", "sección"] },
-  { id: "apoderado", label: "Apoderado", aliases: ["apoderado", "nombre_apoderado", "nombre del apoderado"] },
-  { id: "celular", label: "Celular", aliases: ["celular", "telefono", "teléfono", "telefono_apoderado"] },
+  { id: "n_com", label: "N_COM", aliases: ["N_COM"] },
+  { id: "titulo", label: "TITULO", aliases: ["TITULO", "TÍTULO"] },
+  { id: "fecha", label: "FECHA", aliases: ["FECHA"] },
+  { id: "area", label: "AREA", aliases: ["AREA", "ÁREA"] },
+  { id: "prog", label: "PROG", aliases: ["PROG", "PROGRAMA"] },
+  { id: "ciclo", label: "CICLO", aliases: ["CICLO"] },
+  { id: "ini", label: "INI", aliases: ["INI", "INICIO"] },
+  { id: "fin", label: "FIN", aliases: ["FIN"] },
+  { id: "dur", label: "DUR", aliases: ["DUR", "DURACION", "DURACIÓN"] },
+  { id: "n1", label: "N1", aliases: ["N1"] },
+  { id: "n2", label: "N2", aliases: ["N2"] },
+  { id: "n3", label: "N3", aliases: ["N3"] },
+  { id: "n4", label: "N4", aliases: ["N4"] },
+  { id: "dia", label: "DIA", aliases: ["DIA", "DÍA"] },
+  { id: "alm", label: "ALM", aliases: ["ALM", "ALMUERZO"] },
+  { id: "clase", label: "CLASE", aliases: ["CLASE"] },
+  { id: "pago", label: "PAGO", aliases: ["PAGO"] },
+  { id: "costo", label: "COSTO", aliases: ["COSTO"] },
+  { id: "hor_alm", label: "HOR_ALM", aliases: ["HOR_ALM"] },
+  { id: "alumno", label: "ALUMNO", aliases: ["ALUMNO", "NOMBRE_ALUMNO", "NOMBRE DEL ALUMNO", "ESTUDIANTE"] },
+  { id: "gr_sec", label: "GR_SEC", aliases: ["GR_SEC", "GRADO_SECCION", "GRADO SECCION"] },
+  { id: "apod", label: "APOD", aliases: ["APOD", "APODERADO", "NOMBRE_APODERADO"] },
+  { id: "cel", label: "CEL", aliases: ["CEL", "CELULAR", "TELEFONO", "TELÉFONO"] },
 ];
 
 const nivelesGrados = [
@@ -80,6 +103,7 @@ function Coordinacion({ onLogout }) {
   const [plantillaInputKey, setPlantillaInputKey] = useState(0);
   const [programaDocsId, setProgramaDocsId] = useState("");
   const [lecturaDocumento, setLecturaDocumento] = useState(null);
+  const [sidebarAbierta, setSidebarAbierta] = useState(true);
 
   // Modal invitados
   const [showInvitados, setShowInvitados] = useState(false);
@@ -129,6 +153,7 @@ function Coordinacion({ onLogout }) {
     return coincide && filtra;
   });
   const programaDocs = programas.find((item) => item.id === programaDocsId);
+  const historialPlantillas = programas.filter((programa) => programa.plantilla && programa.plantillaBase64);
 
   // ── Abrir modal crear ──
   function abrirCrear() {
@@ -149,6 +174,8 @@ function Coordinacion({ onLogout }) {
       dias: prog.dias || [],
       horaInicio: prog.horaInicio || "",
       horaFin: prog.horaFin || "",
+      almuerzoInicio: prog.almuerzoInicio || "",
+      almuerzoFin: prog.almuerzoFin || "",
       horariosPorGrupo: prog.horariosPorGrupo || [],
       fechaFin: prog.fechaFin, cupos: String(prog.cupos), costo: String(prog.costo),
       modalidadCobro: prog.modalidadCobro, responsable: prog.responsable,
@@ -189,6 +216,12 @@ function Coordinacion({ onLogout }) {
       if (form.dias.length === 0) return mostrarMsg("Seleccione los días del programa.");
       if (!form.horaInicio || !form.horaFin) return mostrarMsg("Seleccione hora de inicio y fin del programa.");
       if (form.horaInicio >= form.horaFin) return mostrarMsg("La hora de inicio debe ser menor a la hora de fin.");
+      if ((form.almuerzoInicio && !form.almuerzoFin) || (!form.almuerzoInicio && form.almuerzoFin)) {
+        return mostrarMsg("Complete hora de inicio y fin del almuerzo.");
+      }
+      if (form.almuerzoInicio && form.almuerzoFin && form.almuerzoInicio >= form.almuerzoFin) {
+        return mostrarMsg("La hora de inicio del almuerzo debe ser menor a la hora de fin.");
+      }
     }
     const grupoInvalido = gruposHorario.find((grupo) =>
       grupo.grados.length === 0 || !grupo.dia || !grupo.horaInicio || !grupo.horaFin || grupo.horaInicio >= grupo.horaFin
@@ -210,7 +243,7 @@ function Coordinacion({ onLogout }) {
       grupo: resumenGrados(gradosFinales),
       horario: gruposHorario.length
         ? resumenHorariosPorGrupo(gruposHorario)
-        : resumenHorario(form.dias, form.horaInicio, form.horaFin),
+        : resumenHorario(form.dias, form.horaInicio, form.horaFin, form.almuerzoInicio, form.almuerzoFin),
     };
     try {
       if (modoEditar) {
@@ -273,6 +306,29 @@ function Coordinacion({ onLogout }) {
     setLecturaDocumento(null);
     setPlantillaInputKey((actual) => actual + 1);
     setMensaje("");
+  }
+
+  async function guardarDocumentoComoPrograma() {
+    if (!form.plantillaBase64) return mostrarMsg("Primero suba el documento Word.");
+    if (!form.plantillaValidada) return mostrarMsg("El Word debe tener variables editables antes de guardarlo.");
+    if (!form.nombre.trim()) return mostrarMsg("Ingrese el nombre del programa.");
+
+    setGuardando(true);
+    try {
+      const creado = await crearProgramaDesdeDocumento({
+        ...form,
+        nombre: form.nombre.trim(),
+      });
+      await cargarDatos();
+      setProgramaDocsId("");
+      setForm(formInicial);
+      setLecturaDocumento(null);
+      setPlantillaInputKey((actual) => actual + 1);
+      mostrarMsg(`Plantilla de ${creado.nombre} guardada en el historial.`, "success");
+    } catch (err) {
+      mostrarMsg(err.message);
+    }
+    setGuardando(false);
   }
 
   async function guardarDocumentosPrograma() {
@@ -364,9 +420,7 @@ function Coordinacion({ onLogout }) {
     }
 
     try {
-      const lectura = vista === "documentos"
-        ? await leerDocumentoWord(archivo)
-        : await leerPlantillaWord(archivo);
+      const lectura = await leerPlantillaWord(archivo);
       const { variablesDetectadas, textoPlano } = lectura;
       const plantillaBase64 = await leerArchivoBase64(archivo);
       const datosDetectados = extraerDatosProgramaDesdeWord(textoPlano, archivo.name, categorias);
@@ -386,7 +440,7 @@ function Coordinacion({ onLogout }) {
         plantilla: archivo.name,
         plantillaBase64,
         plantillaVariables: variablesDetectadas,
-        plantillaValidada: vista === "documentos" ? true : lectura.plantillaValida,
+        plantillaValidada: lectura.plantillaValida,
         plantillaActualizadaEn: fechaActualIso(),
       }));
       mostrarMsg(
@@ -447,7 +501,7 @@ function Coordinacion({ onLogout }) {
 
   async function quitarPlantilla() {
     if (vista === "documentos" && form.id && form.plantilla) {
-      const confirmado = window.confirm(`Eliminar el documento "${form.plantilla}" de este programa?`);
+      const confirmado = window.confirm(`¿Está seguro que desea eliminar esta plantilla?\n\n${form.plantilla}`);
       if (!confirmado) return;
     }
 
@@ -483,6 +537,42 @@ function Coordinacion({ onLogout }) {
       await editarPrograma(form.id, siguienteForm);
       await cargarDatos();
       mostrarMsg("Documento eliminado del programa.", "success");
+    } catch (err) {
+      mostrarMsg(err.message);
+    }
+    setGuardando(false);
+  }
+
+  async function eliminarPlantillaHistorial(programa) {
+    const confirmado = window.confirm(`¿Está seguro que desea eliminar esta plantilla?\n\n${programa.plantilla}`);
+    if (!confirmado) return;
+
+    const datosLimpios = {
+      plantilla: "",
+      plantillaBase64: "",
+      plantillaVariables: [],
+      plantillaValidada: false,
+      plantillaActualizadaEn: "",
+      requisitos: "",
+      comunicado: "",
+      detalleCosto: "",
+      detalleAlmuerzo: "",
+      concesionarios: "",
+    };
+
+    setGuardando(true);
+    try {
+      await editarPrograma(programa.id, {
+        ...datosProgramaAFormulario(programa),
+        ...datosLimpios,
+      });
+      if (programaDocsId === programa.id) {
+        setProgramaDocsId("");
+        setForm(formInicial);
+        setLecturaDocumento(null);
+      }
+      await cargarDatos();
+      mostrarMsg("Plantilla eliminada correctamente.", "success");
     } catch (err) {
       mostrarMsg(err.message);
     }
@@ -594,9 +684,13 @@ function Coordinacion({ onLogout }) {
       .join(" / ");
   }
 
-  function resumenHorario(dias, inicio, fin) {
+  function resumenHorario(dias, inicio, fin, almuerzoInicio = "", almuerzoFin = "") {
     if (!dias.length || !inicio || !fin) return "";
-    return `${dias.join(", ")} ${inicio} - ${fin}`;
+    const clase = `${formatearHora12(inicio)} - ${formatearHora12(fin)}`;
+    const almuerzo = almuerzoInicio && almuerzoFin
+      ? ` · almuerzo ${formatearHora12(almuerzoInicio)} - ${formatearHora12(almuerzoFin)}`
+      : "";
+    return `${dias.join(", ")} clase ${clase}${almuerzo}`;
   }
 
   function normalizarHorariosPorGrupo(grupos) {
@@ -626,7 +720,7 @@ function Coordinacion({ onLogout }) {
       .map((grupo) => {
         const grados = resumenGrados(grupo.grados);
         const aula = grupo.aula ? ` · Aula ${grupo.aula}` : "";
-        return `${grados}: ${grupo.dia} almuerzo ${grupo.almuerzoInicio}-${grupo.almuerzoFin}, clase ${grupo.horaInicio}-${grupo.horaFin}${aula}`;
+        return `${grados}: ${grupo.dia} almuerzo ${formatearHora12(grupo.almuerzoInicio)}-${formatearHora12(grupo.almuerzoFin)}, clase ${formatearHora12(grupo.horaInicio)}-${formatearHora12(grupo.horaFin)}${aula}`;
       })
       .join(" / ");
   }
@@ -717,27 +811,35 @@ function Coordinacion({ onLogout }) {
   // RENDER
   // ════════════════════════════════════════════════════════════
   return (
-    <div className="coord-layout">
+    <div className={`coord-layout ${sidebarAbierta ? "" : "coord-layout-collapsed"}`}>
       {/* ── SIDEBAR ── */}
       <aside className="coord-sidebar">
+        <button
+          className="coord-sidebar-toggle"
+          type="button"
+          onClick={() => setSidebarAbierta((abierta) => !abierta)}
+          aria-label={sidebarAbierta ? "Cerrar menu lateral" : "Abrir menu lateral"}
+          title={sidebarAbierta ? "Cerrar menú" : "Abrir menú"}
+        >
+          <ChevronRight size={18} />
+        </button>
         <div className="coord-brand"><div className="coord-brand-mark">SR</div>
-          <div><span>Colegio</span><strong>San Rafael</strong></div>
+          <div className="coord-brand-copy"><span>Colegio</span><strong>San Rafael</strong></div>
         </div>
         <p className="coord-module-label">Módulo Coordinación</p>
         <nav className="coord-nav">
           {vistasNav.map(({ id, label, icon: Icon }) => (
             <button key={id}
               className={`coord-nav-item ${vista === id ? "coord-nav-item-active" : ""}`}
-              onClick={() => { setVista(id); setMensaje(""); }}>
-              <Icon size={18} /><span>{label}</span><ChevronRight size={16} />
+              onClick={() => { setVista(id); setMensaje(""); }}
+              title={label}>
+              <Icon size={18} /><span>{label}</span><ChevronRight className="coord-nav-arrow" size={16} />
             </button>
           ))}
         </nav>
-        <div className="coord-sidebar-footer">
-          <button className="coord-logout" onClick={onLogout}>
-            <LogOut size={18} /><span>Cerrar sesion</span>
-          </button>
-        </div>
+        <button className="coord-logout" onClick={onLogout} title="Cerrar sesión">
+          <LogOut size={18} /><span>Cerrar sesion</span>
+        </button>
       </aside>
 
       {/* ── MAIN ── */}
@@ -792,11 +894,15 @@ function Coordinacion({ onLogout }) {
                     <Table striped highlightOnHover>
                       <Table.Thead>
                         <Table.Tr>
-                          <Table.Th>Nombre</Table.Th>
+                          <Table.Th>Programa / taller</Table.Th>
+                          <Table.Th>Periodo</Table.Th>
                           <Table.Th>Categoría</Table.Th>
-                          <Table.Th>Horario</Table.Th>
-                          <Table.Th>Costo</Table.Th>
+                          <Table.Th>Grados</Table.Th>
+                          <Table.Th>Días y horario</Table.Th>
+                          <Table.Th>Vigencia</Table.Th>
                           <Table.Th>Cupos</Table.Th>
+                          <Table.Th>Costo</Table.Th>
+                          <Table.Th>Cobro</Table.Th>
                           <Table.Th>Estado</Table.Th>
                           <Table.Th>Acciones</Table.Th>
                         </Table.Tr>
@@ -808,20 +914,22 @@ function Coordinacion({ onLogout }) {
                             className={`coord-program-row coord-program-row-${String(prog.estado || "").toLowerCase()}`}
                           >
                             <Table.Td>
-                              <div style={{ fontWeight: 600 }}>{prog.nombre}</div>
-                              <span style={{ fontSize: '12px', color: '#000' }}>{prog.responsable || "—"}</span>
+                              <div className="coord-program-name">{prog.nombre}</div>
+                              <span className="coord-program-subline">{prog.id || "Sin código"}</span>
+                              <span className="coord-program-tutor">Tutor: {prog.responsable || "No asignado"}</span>
                             </Table.Td>
+                            <Table.Td>{normalizarPeriodoVista(prog.periodo) === "escolar" ? "Año escolar" : "Ciclo verano"}</Table.Td>
                             <Table.Td>{prog.categoria}</Table.Td>
-                            <Table.Td>{prog.horario}</Table.Td>
-                            <Table.Td>{formatearSoles(prog.costo)}</Table.Td>
+                            <Table.Td><GradosTabla programa={prog} /></Table.Td>
                             <Table.Td>
-                              <div style={{ fontSize: '12px' }}>
-                                {prog.cuposOcupados}/{prog.cupos}
-                              </div>
-                              <div style={{ width: '60px', height: '4px', background: '#eee', borderRadius: '2px', marginTop: '4px', overflow: 'hidden' }}>
-                                <div style={{ width: `${calcularPorcentajeCupos(prog)}%`, height: '100%', background: prog.cuposOcupados >= prog.cupos ? '#ff6b6b' : '#4f7fd1', transition: 'width 0.2s' }} />
-                              </div>
+                              <HorarioTabla programa={prog} />
                             </Table.Td>
+                            <Table.Td><VigenciaTabla inicio={prog.fechaInicio} fin={prog.fechaFin} /></Table.Td>
+                            <Table.Td>
+                              <CuposTabla programa={prog} />
+                            </Table.Td>
+                            <Table.Td>{formatearSoles(prog.costo)}</Table.Td>
+                            <Table.Td>{prog.modalidadCobro || "No definido"}</Table.Td>
                             <Table.Td>
                               <Badge
                                 color={prog.estado === "Habilitado" ? "blue" : prog.estado === "Deshabilitado" ? "gray" : "yellow"}
@@ -1021,41 +1129,7 @@ function Coordinacion({ onLogout }) {
                   <span className="coord-title-icon"><FileText size={21} /></span>
                   <div>
                     <h2>Plantillas Word por programa</h2>
-                    <p>Asocie el comunicado Word al curso ya registrado, sin recargar el formulario de creación.</p>
-                  </div>
-                </div>
-
-                <div className="coord-form">
-                  <div className="coord-section-grid">
-                    <div className="coord-field">
-                      <label>Programa</label>
-                      <select
-                        value={programaDocsId}
-                        onChange={(event) => {
-                          const programa = programas.find((item) => item.id === event.target.value);
-                          if (programa) abrirDocumentosPrograma(programa);
-                          else {
-                            setProgramaDocsId("");
-                            setForm(formInicial);
-                          }
-                        }}
-                      >
-                        <option value="">Seleccione un programa</option>
-                        {programas.map((programa) => (
-                          <option key={programa.id} value={programa.id}>
-                            {programa.nombre}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="coord-field">
-                      <label>Estado de plantilla</label>
-                      <div className="coord-readonly-field">
-                        {programaDocs?.plantilla
-                          ? `${programaDocs.plantillaValidada ? "Validada" : "Pendiente"} - ${programaDocs.plantilla}`
-                          : "Sin plantilla asociada"}
-                      </div>
-                    </div>
+                    <p>Suba primero el Word, valide sus variables y guarde el nombre para usarlo luego en Gestión de Programas.</p>
                   </div>
                 </div>
 
@@ -1070,67 +1144,121 @@ function Coordinacion({ onLogout }) {
                   </MantineAlert>
                 )}
 
-                {programaDocs ? (
-                  <div className="coord-template-workspace">
+                <div className="coord-template-workspace">
                     <TemplateUploadField
                       plantillaInputKey={plantillaInputKey}
                       form={form}
                       programas={programas}
+                      variablesPlantillaRequeridas={variablesPlantillaRequeridas}
                       onSelect={seleccionarPlantilla}
                       onRemove={quitarPlantilla}
                       onAutoFill={autocompletarDesdePlantilla}
                       onUseExisting={usarPlantillaExistente}
                       modoDocumentos
                     />
+                    {form.plantillaValidada ? (
+                      <div className="coord-section-grid">
+                        <div className="coord-field coord-field-full">
+                          <label>Nombre del programa</label>
+                          <input
+                            value={form.nombre}
+                            onChange={(event) => setForm((actual) => ({ ...actual, nombre: event.target.value }))}
+                            placeholder="Ejemplo: Taller de danza primaria"
+                          />
+                        </div>
+                      </div>
+                    ) : null}
                     {lecturaDocumento ? (
                       <div className="coord-document-read">
                         <div className="coord-document-read-head">
                           <div>
-                            <strong>Lectura del documento</strong>
+                            <strong>Documento validado</strong>
                             <span>{lecturaDocumento.archivo}</span>
                           </div>
-                          <span>{lecturaDocumento.texto ? `${lecturaDocumento.texto.length} caracteres` : "Sin texto"}</span>
+                          <span>Word apto para completar datos</span>
                         </div>
                         <div className="coord-document-detected">
-                          <SummaryBox label="Secciones detectadas" value={Object.keys(lecturaDocumento.datos || {}).length} />
-                          <SummaryBox label="Variables encontradas" value={(lecturaDocumento.variables || []).length} tone={(lecturaDocumento.variables || []).length ? "success" : "warning"} />
+                          <SummaryBox label="Datos interpretados" value={Object.keys(lecturaDocumento.datos || {}).length} />
+                          <SummaryBox label="Variables listas" value={`${(lecturaDocumento.variables || []).length}/${variablesPlantillaRequeridas.length}`} tone={(lecturaDocumento.variables || []).length ? "success" : "warning"} />
                         </div>
                         {Object.keys(lecturaDocumento.datos || {}).length ? (
-                          <dl className="coord-document-fields">
+                          <dl className="coord-document-fields coord-document-preview-fields">
                             {Object.entries(lecturaDocumento.datos).map(([campo, valor]) => (
                               <div key={campo}>
                                 <dt>{etiquetaCampoDocumento(campo)}</dt>
-                                <dd>{String(valor || "Sin contenido")}</dd>
+                                <dd>{resumirTextoDocumento(valor)}</dd>
                               </div>
                             ))}
                           </dl>
-                        ) : null}
-                        <textarea readOnly value={lecturaDocumento.texto || ""} rows={8} />
+                        ) : (
+                          <p className="coord-process-note">El Word conserva su diseño original; aquí solo se muestran los datos que el sistema pudo interpretar.</p>
+                        )}
                       </div>
                     ) : null}
                     <div className="coord-upload-actions">
-                      <button className="coord-register-button" type="button" onClick={guardarDocumentosPrograma} disabled={guardando}>
+                      <button
+                        className="coord-register-button"
+                        type="button"
+                        onClick={programaDocs ? guardarDocumentosPrograma : guardarDocumentoComoPrograma}
+                        disabled={guardando || !form.plantillaValidada}
+                      >
                         {guardando ? <Loader2 className="coord-spin" size={17} /> : <CheckCircle2 size={17} />}
-                        <span>{guardando ? "Guardando" : "Guardar documentos"}</span>
+                        <span>{guardando ? "Guardando" : programaDocs ? "Actualizar documento" : "Guardar plantilla"}</span>
                       </button>
                       {form.plantilla ? (
                         <button className="coord-danger-button" type="button" onClick={quitarPlantilla} disabled={guardando}>
                           {guardando ? <Loader2 className="coord-spin" size={17} /> : <Trash2 size={17} />}
-                          <span>Eliminar documento</span>
+                          <span>Quitar plantilla</span>
                         </button>
                       ) : null}
-                      <button className="coord-secondary-button" type="button" onClick={() => abrirEditar(programaDocs)}>
-                        <Edit3 size={17} />
-                        <span>Editar datos del programa</span>
-                      </button>
+                      {programaDocs ? (
+                        <button className="coord-secondary-button" type="button" onClick={() => abrirEditar(programaDocs)}>
+                          <Edit3 size={17} />
+                          <span>Editar datos del programa</span>
+                        </button>
+                      ) : null}
+                    </div>
+                    <div className="coord-template-history">
+                      <div className="coord-document-read-head">
+                        <div>
+                          <strong>Historial de plantillas subidas</strong>
+                          <span>Plantillas disponibles para Gestión de Programas</span>
+                        </div>
+                      </div>
+                      {historialPlantillas.length ? (
+                        <div className="coord-template-history-list">
+                          {historialPlantillas.map((programa) => (
+                            <div className="coord-template-history-item" key={programa.id}>
+                              <div className="coord-template-history-main">
+                                <FileText size={17} />
+                                <div>
+                                  <strong>{programa.nombre}</strong>
+                                  <span>{programa.plantilla}</span>
+                                </div>
+                              </div>
+                              <span className={`coord-pill ${programa.plantillaValidada ? "coord-pill-success" : "coord-pill-error"}`}>
+                                {programa.plantillaValidada ? "Validada" : "Pendiente"}
+                              </span>
+                              <button
+                                className="coord-danger-button coord-template-history-delete"
+                                type="button"
+                                onClick={() => eliminarPlantillaHistorial(programa)}
+                                disabled={guardando}
+                              >
+                                <Trash2 size={16} />
+                                <span>Eliminar plantilla</span>
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="coord-empty coord-template-history-empty">
+                          <FileText size={18} />
+                          <p>Aún no hay plantillas guardadas.</p>
+                        </div>
+                      )}
                     </div>
                   </div>
-                ) : (
-                  <div className="coord-empty">
-                    <FileText size={18} />
-                    <p>Seleccione un programa para subir o administrar su plantilla Word.</p>
-                  </div>
-                )}
               </article>
             </section>
           </>
@@ -1242,6 +1370,12 @@ function Coordinacion({ onLogout }) {
                         <div className="coord-field"><label>Hora fin *</label>
                           <input type="time" value={form.horaFin} onChange={e => actualizarForm("horaFin", e.target.value)} />
                         </div>
+                        <div className="coord-field"><label>Almuerzo inicio</label>
+                          <input type="time" value={form.almuerzoInicio} onChange={e => actualizarForm("almuerzoInicio", e.target.value)} />
+                        </div>
+                        <div className="coord-field"><label>Almuerzo fin</label>
+                          <input type="time" value={form.almuerzoFin} onChange={e => actualizarForm("almuerzoFin", e.target.value)} />
+                        </div>
                         <div className="coord-field"><label>Fecha inicio *</label>
                           <input type="date" value={form.fechaInicio} onChange={e => actualizarForm("fechaInicio", e.target.value)} />
                         </div>
@@ -1251,7 +1385,7 @@ function Coordinacion({ onLogout }) {
                       </div>
                       <div className="coord-field coord-field-full">
                         <p className="coord-field-hint">
-                          Horario general: {resumenHorario(form.dias, form.horaInicio, form.horaFin) || "Opcional si registra grupos por día."}
+                          Horario general: {resumenHorario(form.dias, form.horaInicio, form.horaFin, form.almuerzoInicio, form.almuerzoFin) || "Opcional si registra grupos por día."}
                         </p>
                       </div>
                       <div className="coord-field coord-field-full">
@@ -1366,26 +1500,6 @@ function Coordinacion({ onLogout }) {
                   </section>
                 </div>
 
-                <aside className="coord-program-preview">
-                  <h3>Resumen</h3>
-                  <p className="coord-preview-muted">Revise los datos principales antes de guardar.</p>
-                  <dl>
-                    <div><dt>Programa</dt><dd>{form.nombre || "Sin nombre"}</dd></div>
-                    <div><dt>Periodo</dt><dd>{normalizarPeriodoVista(form.periodo) === "escolar" ? "Año escolar" : "Ciclo verano"}</dd></div>
-                    <div><dt>Categoría</dt><dd>{form.categoria || "Pendiente"}</dd></div>
-                    <div><dt>Grados</dt><dd>{resumenGrados(form.gradosAplicables) || "Pendiente"}</dd></div>
-                    <div><dt>Horario</dt><dd>{form.horariosPorGrupo.length ? resumenHorariosPorGrupo(normalizarHorariosPorGrupo(form.horariosPorGrupo)) : resumenHorario(form.dias, form.horaInicio, form.horaFin) || "Pendiente"}</dd></div>
-                    <div><dt>Cupos</dt><dd>{form.cupos || "0"}</dd></div>
-                    <div><dt>Costo</dt><dd>{form.costo ? formatearSoles(form.costo) : "S/ 0.00"}</dd></div>
-                    <div><dt>Modalidad</dt><dd>{form.modalidadCobro || "Pendiente"}</dd></div>
-                    <div><dt>Uniforme</dt><dd>{form.requiereUniforme ? "Sí requiere" : "No requiere"}</dd></div>
-                    <div><dt>Plantilla</dt><dd>{form.plantilla || "Sin plantilla"}</dd></div>
-                    <div><dt>Requisitos</dt><dd>{form.requisitos || "Sin requisitos adicionales"}</dd></div>
-                  </dl>
-                  <div className="coord-preview-note">
-                    Este registro quedara disponible para Secretaria cuando el programa este habilitado.
-                  </div>
-                </aside>
               </form>
 
               <div className="coord-modal-actions">
@@ -1436,97 +1550,6 @@ function Coordinacion({ onLogout }) {
           </div>
         )}
       </main>
-    </div>
-  );
-}
-
-function SummaryItem({ icon, label, value, color }) {
-  return (
-    <div className={`coord-summary-item coord-summary-${color}`}>
-      <span>{icon}</span>
-      <div><p>{label}</p><strong>{value}</strong></div>
-    </div>
-  );
-}
-
-function SummaryBox({ label, value, tone = "default" }) {
-  return (
-    <div className={`coord-load-box coord-load-${tone}`}>
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
-  );
-}
-
-function TemplateUploadField({ plantillaInputKey, form, programas, onSelect, onRemove, onAutoFill, onUseExisting, modoDocumentos = false }) {
-  const [programaPlantilla, setProgramaPlantilla] = useState("");
-  const plantillasDisponibles = programas.filter((programa) =>
-    programa.id !== form.id && programa.plantilla && programa.plantillaBase64 && programa.plantillaValidada
-  );
-
-  function aplicarPlantillaExistente() {
-    if (!programaPlantilla) return;
-    onUseExisting(programaPlantilla);
-    setProgramaPlantilla("");
-  }
-
-  return (
-    <div className="coord-field coord-field-full">
-      <div className="coord-template-compact-row">
-        <div>
-          <label>{modoDocumentos ? "Subir documento Word" : "Documento Word"}</label>
-          <input className="coord-template-file" key={plantillaInputKey} type="file" accept=".docx" onChange={onSelect} />
-        </div>
-        <div className="coord-template-state">
-          <span>{form.plantilla || "Sin plantilla"}</span>
-          {form.plantilla ? (
-            <span className={`coord-pill ${form.plantillaValidada ? "coord-pill-success" : "coord-pill-error"}`}>
-              {form.plantillaValidada ? "Validada" : "Pendiente"}
-            </span>
-          ) : null}
-          {form.plantilla ? (
-            <button type="button" className="coord-mini-btn coord-mini-danger-btn" onClick={onRemove}>
-              <X size={14} />
-            </button>
-          ) : null}
-        </div>
-      </div>
-      {plantillasDisponibles.length ? (
-        <div className="coord-template-reuse">
-          <label>Usar plantilla de otro programa</label>
-          <div className="coord-template-reuse-row">
-            <select value={programaPlantilla} onChange={(event) => setProgramaPlantilla(event.target.value)}>
-              <option value="">Seleccione un programa</option>
-              {plantillasDisponibles.map((programa) => (
-                <option key={programa.id} value={programa.id}>
-                  {programa.nombre} - {programa.plantilla}
-                </option>
-              ))}
-            </select>
-            <button type="button" className="coord-template-autofill" onClick={aplicarPlantillaExistente} disabled={!programaPlantilla}>
-              Usar plantilla
-            </button>
-          </div>
-        </div>
-      ) : null}
-      {form.plantillaValidada ? (
-        <button type="button" className="coord-template-autofill" onClick={onAutoFill}>
-          <BookOpen size={15} />
-          <span>{modoDocumentos ? "Volver a leer documento" : "Autocompletar datos desde Word"}</span>
-        </button>
-      ) : null}
-      {form.plantilla ? (
-        <div className="coord-template-vars">
-          {variablesPlantillaRequeridas.map((variable) => (
-            <span
-              className={`coord-template-var ${form.plantillaVariables.includes(variable.id) ? "is-ok" : ""}`}
-              key={variable.id}
-            >
-              {variable.label}
-            </span>
-          ))}
-        </div>
-      ) : null}
     </div>
   );
 }
@@ -1901,6 +1924,22 @@ function etiquetaCampoDocumento(campo) {
   return etiquetas[campo] || campo;
 }
 
+function resumirTextoDocumento(valor) {
+  const texto = String(valor || "").replace(/\s+/g, " ").trim();
+  if (!texto) return "Sin contenido";
+  return texto.length > 240 ? `${texto.slice(0, 240).trim()}...` : texto;
+}
+
+function formatearHora12(valor) {
+  const match = String(valor || "").match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return valor || "";
+  const horas24 = Number(match[1]);
+  const minutos = match[2];
+  const periodo = horas24 >= 12 ? "PM" : "AM";
+  const horas12 = horas24 % 12 || 12;
+  return `${horas12}:${minutos} ${periodo}`;
+}
+
 function capitalizarTexto(texto) {
   return String(texto || "")
     .toLowerCase()
@@ -1950,12 +1989,6 @@ function base64ToArrayBuffer(base64) {
   return bytes.buffer;
 }
 
-function calcularPorcentajeCupos(prog) {
-  const cupos = Number(prog.cupos || 0);
-  if (cupos <= 0) return 0;
-  return Math.min(100, Math.round((Number(prog.cuposOcupados || 0) / cupos) * 100));
-}
-
 function esCostoValido(valor) {
   const texto = String(valor || "").trim();
   if (!/^\d+(\.\d{1,2})?$/.test(texto)) return false;
@@ -1970,39 +2003,6 @@ function textoEstadoCarga(estado) {
   if (estado === "Valido") return "Listo";
   if (estado === "Duplicado") return "Duplicado";
   return "Con error";
-}
-
-function GradeSelector({ niveles, seleccionados, onToggle }) {
-  return (
-    <div className="coord-grade-selector">
-      {niveles.map(({ nivel, grados }) => (
-        <details className="coord-grade-group" key={nivel} open={nivel === "Primaria"}>
-          <summary>
-            <span>{nivel}</span>
-            <strong>{seleccionados.filter(item => item.startsWith(`${nivel}:`)).length}</strong>
-          </summary>
-          <div className="coord-grade-options">
-            {grados.map(grado => {
-              const valor = `${nivel}:${grado}`;
-              return (
-                <label
-                  className={`coord-grade-chip ${seleccionados.includes(valor) ? "is-selected" : ""}`}
-                  key={valor}
-                >
-                  <input
-                    type="checkbox"
-                    checked={seleccionados.includes(valor)}
-                    onChange={() => onToggle(valor)}
-                  />
-                  {etiquetaGradoCorta(grado)}
-                </label>
-              );
-            })}
-          </div>
-        </details>
-      ))}
-    </div>
-  );
 }
 
 export default Coordinacion;

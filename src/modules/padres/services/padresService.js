@@ -1,5 +1,5 @@
-import { mockDb, saveMockDb, syncMockDbFromStorage } from "../../services/localDbClient";
-import { fechaActualIso, obtenerVentanaInscripcion } from "../../services/dateService";
+import { mockDb, saveMockDb, syncMockDbFromStorage } from "../../../services/localDbClient";
+import { fechaActualIso, obtenerVentanaInscripcion } from "../../../services/dateService";
 
 const delay = (ms = 350) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -98,7 +98,7 @@ export async function registrarInscripcionPadres(dni, datos, programaId = "") {
     programaId: programa.id,
     periodo: programa.periodo,
     programa: programa.nombre,
-    horario: invitacion?.horario || resolverHorarioPorGrado(programa, estudiante.grado) || programa.horario || "Horario por confirmar",
+    horario: invitacion?.horario || resolverHorarioPorGrado(programa, estudiante.grado) || (tieneHorariosPorGrupo(programa) ? "Horario no configurado para este grado" : programa.horario) || "Horario por confirmar",
     docente: programa.responsable || programa.docente || "No definido",
     costo: Number(programa.costo ?? 0),
     modalidadCobro: programa.modalidadCobro || "",
@@ -149,7 +149,7 @@ function obtenerInvitaciones(dni) {
           programaId: programa.id,
           programa: programa.nombre,
           periodo: normalizarPeriodoTexto(programa.periodo),
-          horario: resolverHorarioPorGrado(programa, invitado.grado) || programa.horario || "Horario por confirmar",
+          horario: resolverHorarioPorGrado(programa, invitado.grado) || (tieneHorariosPorGrupo(programa) ? "Horario no configurado para este grado" : programa.horario) || "Horario por confirmar",
           responsable: programa.responsable || programa.docente || "Responsable por definir",
           costo: Number(programa.costo || 0),
           modalidadCobro: programa.modalidadCobro || "No definido",
@@ -222,7 +222,7 @@ function sincronizarInscripcionConPrograma(inscripcion) {
   return normalizarInscripcion({
     ...inscripcion,
     programa: programa.nombre || inscripcion.programa,
-    horario: resolverHorarioPorGrado(programa, inscripcion.gradoEstudiante || inscripcion.grado) || programa.horario || inscripcion.horario,
+    horario: resolverHorarioPorGrado(programa, inscripcion.gradoEstudiante || inscripcion.grado) || (tieneHorariosPorGrupo(programa) ? "Horario no configurado para este grado" : programa.horario) || inscripcion.horario,
     docente: programa.responsable || programa.docente || inscripcion.docente,
     costo: Number(programa.costo ?? inscripcion.costo ?? 0),
     modalidadCobro: programa.modalidadCobro || inscripcion.modalidadCobro,
@@ -259,10 +259,11 @@ function resolverHorarioPorGrado(programa, gradoAlumno = "") {
   const grupos = programa?.horariosPorGrupo || [];
   if (!Array.isArray(grupos) || grupos.length === 0) return "";
 
-  const gradoNormalizado = normalizarTexto(gradoAlumno);
+  const gradoNormalizado = descomponerGrado(gradoAlumno);
+  if (!gradoNormalizado.numero) return "";
   const grupo = grupos.find((item) =>
     (item.grados || []).some((grado) => coincideGrado(grado, gradoNormalizado))
-  ) || grupos[0];
+  );
 
   if (!grupo) return "";
   const grados = (grupo.grados || []).map(formatearGrado).filter(Boolean).join(", ");
@@ -271,15 +272,20 @@ function resolverHorarioPorGrado(programa, gradoAlumno = "") {
 }
 
 function coincideGrado(gradoGrupo, gradoAlumnoNormalizado) {
-  const partes = normalizarTexto(gradoGrupo).replace(":", " ").split(/\s+/);
-  if (!gradoAlumnoNormalizado || partes.length < 2) return false;
-  return gradoAlumnoNormalizado.includes(partes[0]) && gradoAlumnoNormalizado.includes(partes[1]);
+  const grupo = descomponerGrado(gradoGrupo);
+  if (!grupo.numero || !gradoAlumnoNormalizado?.numero) return false;
+  if (grupo.numero !== gradoAlumnoNormalizado.numero) return false;
+  return !grupo.nivel || !gradoAlumnoNormalizado.nivel || grupo.nivel === gradoAlumnoNormalizado.nivel;
 }
 
 function formatearGrado(valor) {
   const [nivel, grado] = String(valor || "").split(":");
   if (!nivel || !grado) return valor;
   return `${nivel} ${grado}`;
+}
+
+function tieneHorariosPorGrupo(programa) {
+  return Array.isArray(programa?.horariosPorGrupo) && programa.horariosPorGrupo.length > 0;
 }
 
 function calcularEstadoGeneral(inscripcion, invitacion) {
@@ -307,6 +313,13 @@ function normalizarTexto(texto) {
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
+}
+
+function descomponerGrado(valor) {
+  const texto = normalizarTexto(valor).replace(":", " ");
+  const nivel = ["inicial", "primaria", "secundaria"].find((item) => texto.includes(item)) || "";
+  const numero = texto.match(/\d+/)?.[0] || "";
+  return { nivel, numero };
 }
 
 function limpiarTexto(texto) {
