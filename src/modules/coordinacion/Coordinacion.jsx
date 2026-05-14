@@ -5,7 +5,7 @@ import { notifications } from "@mantine/notifications";
 import {
   BookOpen, ChevronRight, LogOut, Plus, Search, Users,
   CheckCircle2, AlertCircle, Loader2, CalendarDays, DollarSign,
-  Edit3, X, Eye, Upload, ToggleLeft, ToggleRight, Trash2
+  Edit3, X, Eye, Upload, ToggleLeft, ToggleRight, Trash2, FileText
 } from "lucide-react";
 import {
   listarProgramas, crearPrograma, editarPrograma, cambiarEstadoPrograma,
@@ -56,6 +56,7 @@ const diasSemana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sába
 const vistasNav = [
   { id: "programas", label: "Gestion de Programas", icon: BookOpen },
   { id: "carga", label: "Carga Excel", icon: Upload },
+  { id: "documentos", label: "Plantillas / Documentos", icon: FileText },
 ];
 
 function Coordinacion({ onLogout }) {
@@ -77,6 +78,8 @@ function Coordinacion({ onLogout }) {
   const [nuevaCat, setNuevaCat] = useState("");
   const [catAEliminar, setCatAEliminar] = useState("");
   const [plantillaInputKey, setPlantillaInputKey] = useState(0);
+  const [programaDocsId, setProgramaDocsId] = useState("");
+  const [lecturaDocumento, setLecturaDocumento] = useState(null);
 
   // Modal invitados
   const [showInvitados, setShowInvitados] = useState(false);
@@ -125,19 +128,21 @@ function Coordinacion({ onLogout }) {
     const filtra = filtroPeriodo === "todos" || normalizarPeriodoVista(p.periodo) === filtroPeriodo;
     return coincide && filtra;
   });
+  const programaDocs = programas.find((item) => item.id === programaDocsId);
 
   // ── Abrir modal crear ──
   function abrirCrear() {
     setForm(formInicial);
     setModoEditar(false);
+    setProgramaDocsId("");
+    setLecturaDocumento(null);
     setPlantillaInputKey((actual) => actual + 1);
     setShowModal(true);
     setMensaje("");
   }
 
-  // ── Abrir modal editar ──
-  function abrirEditar(prog) {
-    setForm({
+  function datosProgramaAFormulario(prog) {
+    return {
       nombre: prog.nombre, periodo: normalizarPeriodoVista(prog.periodo), categoria: prog.categoria,
       grupo: prog.grupo, horario: prog.horario, fechaInicio: prog.fechaInicio,
       gradosAplicables: prog.gradosAplicables || [],
@@ -158,8 +163,15 @@ function Coordinacion({ onLogout }) {
       detalleAlmuerzo: prog.detalleAlmuerzo || "",
       concesionarios: prog.concesionarios || "",
       requiereUniforme: prog.requiereUniforme, id: prog.id,
-    });
+    };
+  }
+
+  // ── Abrir modal editar ──
+  function abrirEditar(prog) {
+    setForm(datosProgramaAFormulario(prog));
     setModoEditar(true);
+    setProgramaDocsId("");
+    setLecturaDocumento(null);
     setPlantillaInputKey((actual) => actual + 1);
     setShowModal(true);
     setMensaje("");
@@ -254,6 +266,30 @@ function Coordinacion({ onLogout }) {
     setShowInvitados(true);
   }
 
+  function abrirDocumentosPrograma(prog) {
+    setForm(datosProgramaAFormulario(prog));
+    setModoEditar(true);
+    setProgramaDocsId(prog.id);
+    setLecturaDocumento(null);
+    setPlantillaInputKey((actual) => actual + 1);
+    setMensaje("");
+  }
+
+  async function guardarDocumentosPrograma() {
+    if (!form.id) return mostrarMsg("Seleccione un programa para gestionar sus documentos.");
+    if (form.plantilla && !form.plantillaValidada) return mostrarMsg("La plantilla Word debe estar validada antes de guardar.");
+
+    setGuardando(true);
+    try {
+      await editarPrograma(form.id, form);
+      await cargarDatos();
+      mostrarMsg("Documentos del programa actualizados correctamente.", "success");
+    } catch (err) {
+      mostrarMsg(err.message);
+    }
+    setGuardando(false);
+  }
+
   // ── Agregar categoría ──
   async function agregarCategoria() {
     if (!nuevaCat.trim()) return;
@@ -328,17 +364,29 @@ function Coordinacion({ onLogout }) {
     }
 
     try {
-      const { variablesDetectadas, textoPlano } = await leerPlantillaWord(archivo);
+      const lectura = vista === "documentos"
+        ? await leerDocumentoWord(archivo)
+        : await leerPlantillaWord(archivo);
+      const { variablesDetectadas, textoPlano } = lectura;
       const plantillaBase64 = await leerArchivoBase64(archivo);
       const datosDetectados = extraerDatosProgramaDesdeWord(textoPlano, archivo.name, categorias);
-      const totalDetectados = contarDatosDetectados(datosDetectados);
+      const datosAplicables = vista === "documentos" ? filtrarDatosDocumento(datosDetectados) : datosDetectados;
+      const totalDetectados = contarDatosDetectados(datosAplicables);
+      if (vista === "documentos") {
+        setLecturaDocumento({
+          archivo: archivo.name,
+          texto: textoPlano,
+          datos: datosAplicables,
+          variables: variablesDetectadas,
+        });
+      }
       setForm((actual) => ({
         ...actual,
-        ...datosDetectados,
+        ...datosAplicables,
         plantilla: archivo.name,
         plantillaBase64,
         plantillaVariables: variablesDetectadas,
-        plantillaValidada: true,
+        plantillaValidada: vista === "documentos" ? true : lectura.plantillaValida,
         plantillaActualizadaEn: fechaActualIso(),
       }));
       mostrarMsg(
@@ -348,6 +396,7 @@ function Coordinacion({ onLogout }) {
         "success"
       );
     } catch (err) {
+      setLecturaDocumento(null);
       setForm((actual) => ({
         ...actual,
         plantilla: archivo.name,
@@ -362,21 +411,33 @@ function Coordinacion({ onLogout }) {
 
   async function autocompletarDesdePlantilla() {
     if (!form.plantillaBase64) {
-      return mostrarMsg("Primero suba y valide una plantilla Word.");
+      return mostrarMsg(vista === "documentos" ? "Primero suba un documento Word." : "Primero suba y valide una plantilla Word.");
     }
 
     try {
-      const { textoPlano } = await leerPlantillaWordDesdeBase64(form.plantillaBase64);
+      const lectura = await leerDocumentoWordDesdeBase64(form.plantillaBase64);
+      const { textoPlano, variablesDetectadas } = lectura;
       const datosDetectados = extraerDatosProgramaDesdeWord(textoPlano, form.plantilla, categorias);
-      const totalDetectados = contarDatosDetectados(datosDetectados);
+      const datosAplicables = vista === "documentos" ? filtrarDatosDocumento(datosDetectados) : datosDetectados;
+      const totalDetectados = contarDatosDetectados(datosAplicables);
+      if (vista === "documentos") {
+        setLecturaDocumento({
+          archivo: form.plantilla,
+          texto: textoPlano,
+          datos: datosAplicables,
+          variables: variablesDetectadas,
+        });
+      }
 
       if (totalDetectados === 0) {
-        return mostrarMsg("No se encontraron datos del programa dentro del Word. Complete los campos manualmente.");
+        return mostrarMsg(vista === "documentos"
+          ? "Documento leído. No se detectaron secciones automáticas para guardar."
+          : "No se encontraron datos del programa dentro del Word. Complete los campos manualmente.");
       }
 
       setForm((actual) => ({
         ...actual,
-        ...datosDetectados,
+        ...datosAplicables,
       }));
       return mostrarMsg(`Se autocompletaron ${totalDetectados} dato(s) del programa.`, "success");
     } catch (err) {
@@ -384,16 +445,76 @@ function Coordinacion({ onLogout }) {
     }
   }
 
-  function quitarPlantilla() {
-    setForm((actual) => ({
-      ...actual,
+  async function quitarPlantilla() {
+    if (vista === "documentos" && form.id && form.plantilla) {
+      const confirmado = window.confirm(`Eliminar el documento "${form.plantilla}" de este programa?`);
+      if (!confirmado) return;
+    }
+
+    const datosLimpios = {
       plantilla: "",
       plantillaBase64: "",
       plantillaVariables: [],
       plantillaValidada: false,
       plantillaActualizadaEn: "",
+      requisitos: "",
+      comunicado: "",
+      detalleCosto: "",
+      detalleAlmuerzo: "",
+      concesionarios: "",
+    };
+
+    const siguienteForm = {
+      ...form,
+      ...datosLimpios,
+    };
+
+    setForm((actual) => ({
+      ...actual,
+      ...datosLimpios,
+    }));
+    setLecturaDocumento(null);
+    setPlantillaInputKey((actual) => actual + 1);
+
+    if (vista !== "documentos" || !form.id) return;
+
+    setGuardando(true);
+    try {
+      await editarPrograma(form.id, siguienteForm);
+      await cargarDatos();
+      mostrarMsg("Documento eliminado del programa.", "success");
+    } catch (err) {
+      mostrarMsg(err.message);
+    }
+    setGuardando(false);
+  }
+
+  async function usarPlantillaExistente(programaId) {
+    const programa = programas.find((item) => item.id === programaId);
+    if (!programa || !programa.plantillaBase64) {
+      return mostrarMsg("Seleccione un programa con plantilla validada.");
+    }
+
+    if (modoEditar && form.id && form.plantilla) {
+      const actividad = await obtenerActividadPrograma(form.id);
+      if (actividad.alumnos || actividad.inscripciones || actividad.documentos) {
+        const confirmado = window.confirm(
+          `Este programa ya tiene ${actividad.alumnos} alumno(s), ${actividad.inscripciones} inscripción(es) y ${actividad.documentos} documento(s). ¿Desea reemplazar la plantilla?`
+        );
+        if (!confirmado) return;
+      }
+    }
+
+    setForm((actual) => ({
+      ...actual,
+      plantilla: programa.plantilla || "",
+      plantillaBase64: programa.plantillaBase64 || "",
+      plantillaVariables: programa.plantillaVariables || [],
+      plantillaValidada: Boolean(programa.plantillaValidada),
+      plantillaActualizadaEn: fechaActualIso(),
     }));
     setPlantillaInputKey((actual) => actual + 1);
+    mostrarMsg(`Se usará la plantilla de ${programa.nombre}.`, "success");
   }
 
   function cambiarPeriodoFormulario(valor) {
@@ -466,8 +587,8 @@ function Coordinacion({ onLogout }) {
       .map(({ nivel }) => {
         const items = grados
           .filter(item => item.startsWith(`${nivel}:`))
-          .map(item => item.split(":")[1]);
-        return items.length ? `${nivel} ${items.join(", ")}` : "";
+          .map(item => etiquetaGradoCorta(item.split(":")[1]));
+        return items.length ? `${nivel}: ${items.join(", ")}` : "";
       })
       .filter(Boolean)
       .join(" / ");
@@ -688,7 +809,7 @@ function Coordinacion({ onLogout }) {
                           >
                             <Table.Td>
                               <div style={{ fontWeight: 600 }}>{prog.nombre}</div>
-                              <span style={{ fontSize: '12px', color: '#666' }}>{prog.responsable || "—"}</span>
+                              <span style={{ fontSize: '12px', color: '#000' }}>{prog.responsable || "—"}</span>
                             </Table.Td>
                             <Table.Td>{prog.categoria}</Table.Td>
                             <Table.Td>{prog.horario}</Table.Td>
@@ -698,12 +819,12 @@ function Coordinacion({ onLogout }) {
                                 {prog.cuposOcupados}/{prog.cupos}
                               </div>
                               <div style={{ width: '60px', height: '4px', background: '#eee', borderRadius: '2px', marginTop: '4px', overflow: 'hidden' }}>
-                                <div style={{ width: `${calcularPorcentajeCupos(prog)}%`, height: '100%', background: prog.cuposOcupados >= prog.cupos ? '#ff6b6b' : '#51cf66', transition: 'width 0.2s' }} />
+                                <div style={{ width: `${calcularPorcentajeCupos(prog)}%`, height: '100%', background: prog.cuposOcupados >= prog.cupos ? '#ff6b6b' : '#4f7fd1', transition: 'width 0.2s' }} />
                               </div>
                             </Table.Td>
                             <Table.Td>
                               <Badge
-                                color={prog.estado === "Habilitado" ? "green" : prog.estado === "Deshabilitado" ? "gray" : "yellow"}
+                                color={prog.estado === "Habilitado" ? "blue" : prog.estado === "Deshabilitado" ? "gray" : "yellow"}
                                 variant="light"
                                 size="sm"
                               >
@@ -713,25 +834,25 @@ function Coordinacion({ onLogout }) {
                             <Table.Td>
                               <Group gap={4}>
                                 <Tooltip label="Editar">
-                                  <ActionIcon size="xs" variant="light" onClick={() => abrirEditar(prog)}>
+                                  <ActionIcon size="xs" color="blue" variant="light" onClick={() => abrirEditar(prog)}>
                                     <Edit3 size={14} />
                                   </ActionIcon>
                                 </Tooltip>
                                 <Tooltip label="Ver alumnos">
-                                  <ActionIcon size="xs" variant="light" onClick={() => verInvitados(prog)}>
+                                  <ActionIcon size="xs" color="blue" variant="light" onClick={() => verInvitados(prog)}>
                                     <Eye size={14} />
                                   </ActionIcon>
                                 </Tooltip>
                                 {prog.estado !== "Finalizado" && (
                                   <Tooltip label={prog.estado === "Habilitado" ? "Deshabilitar" : "Habilitar"}>
-                                    <ActionIcon size="xs" variant="light" onClick={() => toggleEstado(prog)}>
+                                    <ActionIcon size="xs" color="blue" variant="light" onClick={() => toggleEstado(prog)}>
                                       {prog.estado === "Habilitado" ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
                                     </ActionIcon>
                                   </Tooltip>
                                 )}
                                 {prog.estado !== "Finalizado" && (
                                   <Tooltip label="Finalizar">
-                                    <ActionIcon size="xs" variant="light" onClick={() => finalizarPrograma(prog)}>
+                                    <ActionIcon size="xs" color="blue" variant="light" onClick={() => finalizarPrograma(prog)}>
                                       <CheckCircle2 size={14} />
                                     </ActionIcon>
                                   </Tooltip>
@@ -891,6 +1012,130 @@ function Coordinacion({ onLogout }) {
           </>
         )}
 
+        {vista === "documentos" && (
+          <>
+            <header className="coord-topbar"><h1>PLANTILLAS Y DOCUMENTOS</h1></header>
+            <section className="coord-workspace coord-workspace-single">
+              <article className="coord-card coord-search-card">
+                <div className="coord-card-title">
+                  <span className="coord-title-icon"><FileText size={21} /></span>
+                  <div>
+                    <h2>Plantillas Word por programa</h2>
+                    <p>Asocie el comunicado Word al curso ya registrado, sin recargar el formulario de creación.</p>
+                  </div>
+                </div>
+
+                <div className="coord-form">
+                  <div className="coord-section-grid">
+                    <div className="coord-field">
+                      <label>Programa</label>
+                      <select
+                        value={programaDocsId}
+                        onChange={(event) => {
+                          const programa = programas.find((item) => item.id === event.target.value);
+                          if (programa) abrirDocumentosPrograma(programa);
+                          else {
+                            setProgramaDocsId("");
+                            setForm(formInicial);
+                          }
+                        }}
+                      >
+                        <option value="">Seleccione un programa</option>
+                        {programas.map((programa) => (
+                          <option key={programa.id} value={programa.id}>
+                            {programa.nombre}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="coord-field">
+                      <label>Estado de plantilla</label>
+                      <div className="coord-readonly-field">
+                        {programaDocs?.plantilla
+                          ? `${programaDocs.plantillaValidada ? "Validada" : "Pendiente"} - ${programaDocs.plantilla}`
+                          : "Sin plantilla asociada"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {mensaje && (
+                  <MantineAlert
+                    className="coord-message"
+                    color={tipoMsg === "success" ? "sanrafael" : "orange"}
+                    radius="md"
+                    icon={tipoMsg === "success" ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
+                  >
+                    {mensaje}
+                  </MantineAlert>
+                )}
+
+                {programaDocs ? (
+                  <div className="coord-template-workspace">
+                    <TemplateUploadField
+                      plantillaInputKey={plantillaInputKey}
+                      form={form}
+                      programas={programas}
+                      onSelect={seleccionarPlantilla}
+                      onRemove={quitarPlantilla}
+                      onAutoFill={autocompletarDesdePlantilla}
+                      onUseExisting={usarPlantillaExistente}
+                      modoDocumentos
+                    />
+                    {lecturaDocumento ? (
+                      <div className="coord-document-read">
+                        <div className="coord-document-read-head">
+                          <div>
+                            <strong>Lectura del documento</strong>
+                            <span>{lecturaDocumento.archivo}</span>
+                          </div>
+                          <span>{lecturaDocumento.texto ? `${lecturaDocumento.texto.length} caracteres` : "Sin texto"}</span>
+                        </div>
+                        <div className="coord-document-detected">
+                          <SummaryBox label="Secciones detectadas" value={Object.keys(lecturaDocumento.datos || {}).length} />
+                          <SummaryBox label="Variables encontradas" value={(lecturaDocumento.variables || []).length} tone={(lecturaDocumento.variables || []).length ? "success" : "warning"} />
+                        </div>
+                        {Object.keys(lecturaDocumento.datos || {}).length ? (
+                          <dl className="coord-document-fields">
+                            {Object.entries(lecturaDocumento.datos).map(([campo, valor]) => (
+                              <div key={campo}>
+                                <dt>{etiquetaCampoDocumento(campo)}</dt>
+                                <dd>{String(valor || "Sin contenido")}</dd>
+                              </div>
+                            ))}
+                          </dl>
+                        ) : null}
+                        <textarea readOnly value={lecturaDocumento.texto || ""} rows={8} />
+                      </div>
+                    ) : null}
+                    <div className="coord-upload-actions">
+                      <button className="coord-register-button" type="button" onClick={guardarDocumentosPrograma} disabled={guardando}>
+                        {guardando ? <Loader2 className="coord-spin" size={17} /> : <CheckCircle2 size={17} />}
+                        <span>{guardando ? "Guardando" : "Guardar documentos"}</span>
+                      </button>
+                      {form.plantilla ? (
+                        <button className="coord-danger-button" type="button" onClick={quitarPlantilla} disabled={guardando}>
+                          {guardando ? <Loader2 className="coord-spin" size={17} /> : <Trash2 size={17} />}
+                          <span>Eliminar documento</span>
+                        </button>
+                      ) : null}
+                      <button className="coord-secondary-button" type="button" onClick={() => abrirEditar(programaDocs)}>
+                        <Edit3 size={17} />
+                        <span>Editar datos del programa</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="coord-empty">
+                    <FileText size={18} />
+                    <p>Seleccione un programa para subir o administrar su plantilla Word.</p>
+                  </div>
+                )}
+              </article>
+            </section>
+          </>
+        )}
+
         {/* ─── MODAL: CREAR / EDITAR PROGRAMA ─── */}
         {showModal && (
           <div className="coord-modal-overlay" onClick={() => setShowModal(false)}>
@@ -907,25 +1152,6 @@ function Coordinacion({ onLogout }) {
               </div>
               <form className="coord-program-form" id="form-programa" onSubmit={guardar}>
                 <div className="coord-program-form-main">
-                  <section className="coord-form-section coord-template-section">
-                    <div className="coord-section-heading">
-                      <Upload size={18} />
-                      <div>
-                        <h3>Plantilla Word del comunicado</h3>
-                        <p>Archivo .docx que usará Secretaría para generar el documento personalizado.</p>
-                      </div>
-                    </div>
-                    <div className="coord-section-grid">
-                      <TemplateUploadField
-                        plantillaInputKey={plantillaInputKey}
-                        form={form}
-                        onSelect={seleccionarPlantilla}
-                        onRemove={quitarPlantilla}
-                        onAutoFill={autocompletarDesdePlantilla}
-                      />
-                    </div>
-                  </section>
-
                   <section className="coord-form-section">
                     <div className="coord-section-heading">
                       <BookOpen size={18} />
@@ -934,8 +1160,8 @@ function Coordinacion({ onLogout }) {
                         <p>Nombre, periodo, categoría y grupo del programa.</p>
                       </div>
                     </div>
-                    <div className="coord-section-grid">
-                      <div className="coord-field coord-field-full"><label>Nombre del programa *</label>
+                    <div className="coord-section-grid coord-general-grid">
+                      <div className="coord-field coord-program-name-field"><label>Nombre del programa *</label>
                         <input value={form.nombre} onChange={e => actualizarForm("nombre", e.target.value)} placeholder="Ej: Reforzamiento y nivelacion" />
                       </div>
                       <div className="coord-field"><label>Periodo *</label>
@@ -943,29 +1169,27 @@ function Coordinacion({ onLogout }) {
                           <option value="escolar">Año escolar</option><option value="verano">Ciclo verano</option>
                         </select>
                       </div>
-                      <div className="coord-field"><label>Categoría *</label>
+                      <div className="coord-field coord-category-main"><label>Categoría *</label>
                         <select value={form.categoria} onChange={e => actualizarForm("categoria", e.target.value)}>
                           <option value="">Seleccione</option>
                           {categorias.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                       </div>
-                      <div className="coord-category-tools coord-field-full">
-                        <div className="coord-field">
-                          <label>Nueva categoría</label>
-                          <div className="coord-inline-field">
-                            <input placeholder="Ej: Arte, verano, alto rendimiento" value={nuevaCat} onChange={e => setNuevaCat(e.target.value)} />
-                            <button type="button" className="coord-mini-btn" onClick={agregarCategoria}><Plus size={14} /></button>
-                          </div>
+                      <div className="coord-field coord-new-category-field">
+                        <label>Nueva categoría</label>
+                        <div className="coord-inline-field">
+                          <input placeholder="Ej: Arte, verano, alto rendimiento" value={nuevaCat} onChange={e => setNuevaCat(e.target.value)} />
+                          <button type="button" className="coord-mini-btn" onClick={agregarCategoria}><Plus size={14} /></button>
                         </div>
-                        <div className="coord-field">
-                          <label>Quitar categoría</label>
-                          <div className="coord-inline-field">
-                            <select value={catAEliminar} onChange={e => setCatAEliminar(e.target.value)}>
-                              <option value="">Seleccione</option>
-                              {categorias.map(c => <option key={c} value={c}>{c}</option>)}
-                            </select>
-                            <button type="button" className="coord-mini-btn coord-mini-danger-btn" onClick={quitarCategoria}><Trash2 size={14} /></button>
-                          </div>
+                      </div>
+                      <div className="coord-field coord-remove-category-field">
+                        <label>Quitar categoría</label>
+                        <div className="coord-inline-field">
+                          <select value={catAEliminar} onChange={e => setCatAEliminar(e.target.value)}>
+                            <option value="">Seleccione</option>
+                            {categorias.map(c => <option key={c} value={c}>{c}</option>)}
+                          </select>
+                          <button type="button" className="coord-mini-btn coord-mini-danger-btn" onClick={quitarCategoria}><Trash2 size={14} /></button>
                         </div>
                       </div>
                       <div className="coord-field coord-field-full">
@@ -1102,14 +1326,14 @@ function Coordinacion({ onLogout }) {
                         <p>Control de disponibilidad y costo referencial.</p>
                       </div>
                     </div>
-                    <div className="coord-section-grid">
-                      <div className="coord-field"><label>Cupos *</label>
+                    <div className="coord-section-grid coord-payment-grid">
+                      <div className="coord-field"><label>Cupos</label>
                         <input type="number" min="1" value={form.cupos} onChange={e => actualizarForm("cupos", e.target.value)} placeholder="20" />
                       </div>
-                      <div className="coord-field"><label>Costo (S/) *</label>
+                      <div className="coord-field"><label>Costo (S/)</label>
                         <input inputMode="decimal" value={form.costo} onChange={e => actualizarCosto(e.target.value)} onBlur={formatearCostoFormulario} placeholder="70.00" />
                       </div>
-                      <div className="coord-field coord-field-full"><label>Modalidad de cobro *</label>
+                      <div className="coord-field"><label>Modalidad de cobro</label>
                         <select value={form.modalidadCobro} onChange={e => actualizarForm("modalidadCobro", e.target.value)}>
                           <option value="Mensual">Cuota mensual</option><option value="Unico">Pago unico</option>
                         </select>
@@ -1121,8 +1345,8 @@ function Coordinacion({ onLogout }) {
                     <div className="coord-section-heading">
                       <Users size={18} />
                       <div>
-                        <h3>Responsables y requisitos</h3>
-                        <p>Personal a cargo y condiciones adicionales.</p>
+                        <h3>Responsables</h3>
+                        <p>Personal a cargo y condiciones del taller.</p>
                       </div>
                     </div>
                     <div className="coord-section-grid">
@@ -1131,14 +1355,6 @@ function Coordinacion({ onLogout }) {
                       </div>
                       <div className="coord-field"><label>Tutora / apoyo</label>
                         <input value={form.tutora} onChange={e => actualizarForm("tutora", e.target.value)} placeholder="Srta. Lucia Vega" />
-                      </div>
-                      <div className="coord-field coord-field-full"><label>Otros requisitos</label>
-                        <textarea
-                          rows="3"
-                          value={form.requisitos}
-                          onChange={e => actualizarForm("requisitos", e.target.value)}
-                          placeholder="Ej: traer cuaderno, autorizacion firmada, implementos deportivos"
-                        />
                       </div>
                       <div className="coord-field coord-field-full">
                         <label className="coord-check-label">
@@ -1242,40 +1458,75 @@ function SummaryBox({ label, value, tone = "default" }) {
   );
 }
 
-function TemplateUploadField({ plantillaInputKey, form, onSelect, onRemove, onAutoFill }) {
+function TemplateUploadField({ plantillaInputKey, form, programas, onSelect, onRemove, onAutoFill, onUseExisting, modoDocumentos = false }) {
+  const [programaPlantilla, setProgramaPlantilla] = useState("");
+  const plantillasDisponibles = programas.filter((programa) =>
+    programa.id !== form.id && programa.plantilla && programa.plantillaBase64 && programa.plantillaValidada
+  );
+
+  function aplicarPlantillaExistente() {
+    if (!programaPlantilla) return;
+    onUseExisting(programaPlantilla);
+    setProgramaPlantilla("");
+  }
+
   return (
     <div className="coord-field coord-field-full">
-      <label>Subir plantilla Word (.docx)</label>
-      <input key={plantillaInputKey} type="file" accept=".docx" onChange={onSelect} />
-      <div className="coord-template-state">
-        <span>{form.plantilla || "Sin plantilla asociada"}</span>
-        {form.plantilla ? (
-          <span className={`coord-pill ${form.plantillaValidada ? "coord-pill-success" : "coord-pill-error"}`}>
-            {form.plantillaValidada ? "Validada" : "Pendiente de validar"}
-          </span>
-        ) : null}
-        {form.plantilla ? (
-          <button type="button" className="coord-mini-btn coord-mini-danger-btn" onClick={onRemove}>
-            <X size={14} />
-          </button>
-        ) : null}
+      <div className="coord-template-compact-row">
+        <div>
+          <label>{modoDocumentos ? "Subir documento Word" : "Documento Word"}</label>
+          <input className="coord-template-file" key={plantillaInputKey} type="file" accept=".docx" onChange={onSelect} />
+        </div>
+        <div className="coord-template-state">
+          <span>{form.plantilla || "Sin plantilla"}</span>
+          {form.plantilla ? (
+            <span className={`coord-pill ${form.plantillaValidada ? "coord-pill-success" : "coord-pill-error"}`}>
+              {form.plantillaValidada ? "Validada" : "Pendiente"}
+            </span>
+          ) : null}
+          {form.plantilla ? (
+            <button type="button" className="coord-mini-btn coord-mini-danger-btn" onClick={onRemove}>
+              <X size={14} />
+            </button>
+          ) : null}
+        </div>
       </div>
+      {plantillasDisponibles.length ? (
+        <div className="coord-template-reuse">
+          <label>Usar plantilla de otro programa</label>
+          <div className="coord-template-reuse-row">
+            <select value={programaPlantilla} onChange={(event) => setProgramaPlantilla(event.target.value)}>
+              <option value="">Seleccione un programa</option>
+              {plantillasDisponibles.map((programa) => (
+                <option key={programa.id} value={programa.id}>
+                  {programa.nombre} - {programa.plantilla}
+                </option>
+              ))}
+            </select>
+            <button type="button" className="coord-template-autofill" onClick={aplicarPlantillaExistente} disabled={!programaPlantilla}>
+              Usar plantilla
+            </button>
+          </div>
+        </div>
+      ) : null}
       {form.plantillaValidada ? (
         <button type="button" className="coord-template-autofill" onClick={onAutoFill}>
           <BookOpen size={15} />
-          <span>Autocompletar datos desde Word</span>
+          <span>{modoDocumentos ? "Volver a leer documento" : "Autocompletar datos desde Word"}</span>
         </button>
       ) : null}
-      <div className="coord-template-vars">
-        {variablesPlantillaRequeridas.map((variable) => (
-          <span
-            className={`coord-template-var ${form.plantillaVariables.includes(variable.id) ? "is-ok" : ""}`}
-            key={variable.id}
-          >
-            {variable.label}
-          </span>
-        ))}
-      </div>
+      {form.plantilla ? (
+        <div className="coord-template-vars">
+          {variablesPlantillaRequeridas.map((variable) => (
+            <span
+              className={`coord-template-var ${form.plantillaVariables.includes(variable.id) ? "is-ok" : ""}`}
+              key={variable.id}
+            >
+              {variable.label}
+            </span>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -1285,12 +1536,23 @@ async function leerPlantillaWord(archivo) {
   return analizarZipPlantilla(zip);
 }
 
+async function leerDocumentoWord(archivo) {
+  const zip = await JSZip.loadAsync(archivo);
+  return analizarZipPlantilla(zip, { validarVariables: false });
+}
+
 async function leerPlantillaWordDesdeBase64(base64) {
   const zip = await JSZip.loadAsync(base64ToArrayBuffer(base64));
   return analizarZipPlantilla(zip);
 }
 
-async function analizarZipPlantilla(zip) {
+async function leerDocumentoWordDesdeBase64(base64) {
+  const zip = await JSZip.loadAsync(base64ToArrayBuffer(base64));
+  return analizarZipPlantilla(zip, { validarVariables: false });
+}
+
+async function analizarZipPlantilla(zip, opciones = {}) {
+  const validarVariables = opciones.validarVariables !== false;
   const archivosXml = Object.values(zip.files).filter((file) =>
     /^word\/(document|header|footer)\d*\.xml$/i.test(file.name)
   );
@@ -1307,12 +1569,14 @@ async function analizarZipPlantilla(zip) {
     .map((variable) => variable.id);
   const faltantes = variablesPlantillaRequeridas.filter((variable) => !presentes.includes(variable.id));
 
-  if (faltantes.length) {
+  if (validarVariables && faltantes.length) {
     throw new Error(`La plantilla no contiene variables requeridas: ${faltantes.map((item) => item.label).join(", ")}.`);
   }
 
   return {
     variablesDetectadas: presentes,
+    variablesFaltantes: faltantes.map((item) => item.id),
+    plantillaValida: faltantes.length === 0,
     textoPlano: contenidos.map(extraerTextoPlanoXml).join("\n"),
   };
 }
@@ -1598,11 +1862,15 @@ function resumenGradosDesdeValores(grados) {
     .map(({ nivel }) => {
       const items = grados
         .filter(item => item.startsWith(`${nivel}:`))
-        .map(item => item.split(":")[1]);
-      return items.length ? `${nivel} ${items.join(", ")}` : "";
+        .map(item => etiquetaGradoCorta(item.split(":")[1]));
+      return items.length ? `${nivel}: ${items.join(", ")}` : "";
     })
     .filter(Boolean)
     .join(" / ");
+}
+
+function etiquetaGradoCorta(grado) {
+  return String(grado || "").replace(/\s*años?/i, "").trim();
 }
 
 function limpiarDatosVacios(datos) {
@@ -1615,6 +1883,22 @@ function limpiarDatosVacios(datos) {
 
 function contarDatosDetectados(datos) {
   return Object.keys(datos).filter((key) => !["grupo", "horario"].includes(key)).length;
+}
+
+function filtrarDatosDocumento(datos) {
+  const camposDocumento = ["requisitos", "comunicado", "detalleCosto", "detalleAlmuerzo", "concesionarios"];
+  return Object.fromEntries(Object.entries(datos).filter(([key]) => camposDocumento.includes(key)));
+}
+
+function etiquetaCampoDocumento(campo) {
+  const etiquetas = {
+    requisitos: "Requisitos",
+    comunicado: "Comunicado",
+    detalleCosto: "Detalle de costo",
+    detalleAlmuerzo: "Almuerzo",
+    concesionarios: "Concesionarios",
+  };
+  return etiquetas[campo] || campo;
 }
 
 function capitalizarTexto(texto) {
@@ -1710,7 +1994,7 @@ function GradeSelector({ niveles, seleccionados, onToggle }) {
                     checked={seleccionados.includes(valor)}
                     onChange={() => onToggle(valor)}
                   />
-                  {grado}
+                  {etiquetaGradoCorta(grado)}
                 </label>
               );
             })}

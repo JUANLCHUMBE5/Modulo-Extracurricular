@@ -515,7 +515,7 @@ export default function Padres({ user, onLogout }) {
                 <Dato label="Horario" value={programa.horario || "Por confirmar"} />
                 <Dato label="Vigencia" value={`${formatearFechaPeru(programa.fechaInicio, "Por definir")} al ${formatearFechaPeru(programa.fechaFin, "Por definir")}`} />
                 <Dato label="Costo" value={formatearSoles(programa.costo)} />
-                <Dato label="Estado" value={inscripcion?.estadoInscripcion || (invitacion ? "Invitacion pendiente" : "Sin registro")} />
+                <Dato label="Estado" value={inscripcion?.estadoInscripcion || (invitacion ? "Invitación pendiente" : "Sin registro")} />
               </div>
 
               <div className="padres-comunicado-section">
@@ -701,7 +701,7 @@ function responderAsistente(pregunta, { estudiante, programa, inscripcion, tipoR
     return "El QR se habilitara cuando Caja valide el pago del programa.";
   }
   if (texto.includes("estado")) {
-    return `La inscripcion figura como ${inscripcion?.estadoInscripcion || (inscripcion ? "Registrada" : "Pendiente de inscripcion presencial")} y el pago como ${inscripcion?.estadoPago || "Pendiente de pago"}.`;
+    return `La inscripción figura como ${inscripcion?.estadoInscripcion || (inscripcion ? "Registrada" : "Pendiente de inscripción presencial")} y el pago como ${inscripcion?.estadoPago || "Pendiente de pago"}.`;
   }
   if (texto.includes("hacer") || texto.includes("siguiente")) {
     return obtenerSiguientePaso({ programa, inscripcion }).detalle;

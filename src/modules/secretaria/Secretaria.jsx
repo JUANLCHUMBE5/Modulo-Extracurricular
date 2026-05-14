@@ -230,7 +230,7 @@ function Secretaria({ onLogout }) {
   async function aplicarEstudianteEncontrado(encontrado) {
     setResultadosNombre([]);
     const registroExistente = await buscarInscripcionEstudiante(encontrado, periodo);
-    const estadoRegistro = registroExistente?.estadoInscripción || registroExistente?.["estadoInscripciÃ³n"];
+    const estadoRegistro = registroExistente?.estadoInscripción || registroExistente?.estadoInscripcion;
     setEstudiante({
       ...encontrado,
       estadoInscripción: estadoRegistro || encontrado.estadoInscripción,
@@ -1025,7 +1025,7 @@ function Secretaria({ onLogout }) {
 
 function ProcesoItem({ activo, completado, texto }) {
   return (
-    <div className={`secretaria-process-item ${activo ? "is-active" : ""}`}>
+    <div className={`secretaria-process-item ${activo ? "is-active" : ""} ${completado ? "is-complete" : ""}`}>
       <span>{completado ? <CheckCircle2 size={15} /> : null}</span>
       <p>{texto}</p>
     </div>

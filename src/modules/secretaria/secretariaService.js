@@ -25,8 +25,8 @@ export async function buscarEstudiantePorDni(dni, periodo = "escolar") {
 
   return {
     ...estudiante,
-    periodo: periodoNormalizado === "verano" ? "Ciclo verano" : "AÃƒÂ±o escolar",
-    estadoInscripcion: obtenerestadoInscripcionPorPeriodo(dni, periodoNormalizado),
+    periodo: periodoNormalizado === "verano" ? "Ciclo verano" : "Año escolar",
+    estadoInscripcion: obtenerEstadoInscripcionPorPeriodo(dni, periodoNormalizado),
     estadoPago: obtenerEstadoPagoPorPeriodo(dni, periodoNormalizado),
     origenRegistro: "Base general de estudiantes",
     tieneInvitacion: false,
@@ -55,8 +55,8 @@ export async function buscarEstudiantesPorNombre(nombre, periodo = "escolar") {
       ? adaptarEstudianteBase(estudiante, periodoNormalizado, invitacion)
       : {
           ...estudiante,
-          periodo: periodoNormalizado === "verano" ? "Ciclo verano" : "AÃƒÂ±o escolar",
-          estadoInscripcion: obtenerestadoInscripcionPorPeriodo(estudiante.dni, periodoNormalizado),
+    periodo: periodoNormalizado === "verano" ? "Ciclo verano" : "Año escolar",
+    estadoInscripcion: obtenerEstadoInscripcionPorPeriodo(estudiante.dni, periodoNormalizado),
           estadoPago: obtenerEstadoPagoPorPeriodo(estudiante.dni, periodoNormalizado),
           origenRegistro: "Base general de estudiantes",
           tieneInvitacion: false,
@@ -111,12 +111,12 @@ export async function registrarInscripcion(payload) {
   finalizarProgramasVencidos();
 
   const programa = mockDb.programas.find((item) => item.id === payload.programaId);
-  if (!programa) throw new Error("El programa ya no existe. CoordinaciÃƒÂ³n debe revisarlo.");
+  if (!programa) throw new Error("El programa ya no existe. Coordinación debe revisarlo.");
   if (programa.estado !== "Habilitado") {
-    throw new Error("No se puede registrar la inscripciÃƒÂ³n porque el programa no estÃƒÂ¡ habilitado.");
+    throw new Error("No se puede registrar la inscripción porque el programa no está habilitado.");
   }
   if (Number(programa.cuposOcupados || 0) >= Number(programa.cupos || 0)) {
-    throw new Error("No se puede registrar la inscripciÃƒÂ³n porque el programa no tiene cupos disponibles.");
+    throw new Error("No se puede registrar la inscripción porque el programa no tiene cupos disponibles.");
   }
   validarVentanaInscripcionRegular(programa, payload);
 
@@ -127,7 +127,7 @@ export async function registrarInscripcion(payload) {
     clavesAlumnoInscripcion(item).some((clave) => clavesPayload.includes(clave))
   );
 
-  if (duplicada) throw new Error("El alumno ya tiene una inscripciÃƒÂ³n registrada en este programa.");
+  if (duplicada) throw new Error("El alumno ya tiene una inscripción registrada en este programa.");
 
   const registro = {
     id: `INS-${Date.now().toString().slice(-6)}`,
@@ -165,7 +165,7 @@ export async function registrarInscripcion(payload) {
 export async function registrarDocumentoGenerado({
   estudiante,
   inscripcion,
-  usuario = "SecretarÃƒÂ­a",
+  usuario = "Secretaría",
   tipoDocumento = "Comunicado personalizado",
 }) {
   await esperar(250);
@@ -199,7 +199,7 @@ export async function buscarInscripcionEstudiante(estudiante, periodo = "escolar
   const inscripciones = [...mockDb.inscripciones]
     .reverse()
     .filter((item) =>
-      (item["estadoInscripciÃƒÆ’Ã‚Â³n"] || item.estadoInscripcion) !== "Anulada" &&
+    item.estadoInscripcion !== "Anulada" &&
       normalizarPeriodo(item.periodo) === periodoNormalizado &&
       clavesAlumnoInscripcion(item).some((clave) => clavesEstudiante.includes(clave))
     );
@@ -246,14 +246,14 @@ function adaptarProgramaCoordinacion(programa) {
   return {
     id: programa.id,
     nombre: programa.nombre,
-    periodo: periodoNormalizado === "verano" ? "Ciclo verano" : "AÃƒÂ±o escolar",
+    periodo: periodoNormalizado === "verano" ? "Ciclo verano" : "Año escolar",
     horario: resolverHorarioPorGrado(programa) || programa.horario,
     docente: programa.responsable || programa.docente || "No definido",
     costo: Number(programa.costo ?? 0),
     cupos: cuposDisponibles > 0 ? `${cuposDisponibles} cupos disponibles` : "Sin cupos",
     cuposDisponibles,
     requiereUniforme: Boolean(programa.requiereUniforme),
-    uniforme: programa.requiereUniforme ? "SÃƒÂ­" : "No",
+    uniforme: programa.requiereUniforme ? "Sí" : "No",
     modalidadCobro: programa.modalidadCobro || "",
     fechaInicio: programa.fechaInicio || "",
     fechaFin: programa.fechaFin || "",
@@ -270,10 +270,10 @@ function adaptarEstudianteBase(estudiante, periodoNormalizado, invitacionPeriodo
   const { programa } = invitacionPeriodo;
   return {
     ...estudiante,
-    periodo: periodoNormalizado === "verano" ? "Ciclo verano" : "AÃƒÂ±o escolar",
-    estadoInscripcion: obtenerestadoInscripcionPorPeriodo(estudiante.dni, periodoNormalizado),
+    periodo: periodoNormalizado === "verano" ? "Ciclo verano" : "Año escolar",
+    estadoInscripcion: obtenerEstadoInscripcionPorPeriodo(estudiante.dni, periodoNormalizado),
     estadoPago: obtenerEstadoPagoPorPeriodo(estudiante.dni, periodoNormalizado),
-    origenRegistro: "Base general de estudiantes + carga Excel de CoordinaciÃƒÂ³n",
+    origenRegistro: "Base general de estudiantes + carga Excel de Coordinación",
     tieneInvitacion: true,
     programaAsignado: invitacionPeriodo.programaId,
     programaNombre: programa.nombre,
@@ -301,10 +301,10 @@ function adaptarInvitadoComoEstudiante(invitacionPeriodo, periodoNormalizado) {
     grado: invitado.grado || "No definido",
     seccion: invitado.seccion || "No definido",
     tipoAlumno: "Alumno invitado",
-    periodo: periodoNormalizado === "verano" ? "Ciclo verano" : "AÃƒÂ±o escolar",
-    estadoInscripcion: obtenerestadoInscripcionPorPeriodo(invitado.dni, periodoNormalizado),
+    periodo: periodoNormalizado === "verano" ? "Ciclo verano" : "Año escolar",
+    estadoInscripcion: obtenerEstadoInscripcionPorPeriodo(invitado.dni, periodoNormalizado),
     estadoPago: obtenerEstadoPagoPorPeriodo(invitado.dni, periodoNormalizado),
-    origenRegistro: "Carga Excel de CoordinaciÃƒÂ³n",
+    origenRegistro: "Carga Excel de Coordinación",
     tieneInvitacion: true,
     programaAsignado: invitacionPeriodo.programaId,
     programaNombre: programa.nombre,
@@ -348,7 +348,7 @@ function resolverHorarioPorGrado(programa, gradoAlumno = "") {
 
   if (!grupo) return "";
   const grados = (grupo.grados || []).map(formatearGrado).filter(Boolean).join(", ");
-  const aula = grupo.aula ? ` Ã‚Â· Aula ${grupo.aula}` : "";
+  const aula = grupo.aula ? ` · Aula ${grupo.aula}` : "";
   return `${grados ? `${grados}: ` : ""}${grupo.dia} almuerzo ${grupo.almuerzoInicio || "14:20"}-${grupo.almuerzoFin || "15:10"}, clase ${grupo.horaInicio || ""}-${grupo.horaFin || ""}${aula}`;
 }
 
@@ -403,7 +403,7 @@ function normalizarTexto(texto) {
     .replace(/[\u0300-\u036f]/g, "");
 }
 
-function obtenerestadoInscripcionPorPeriodo(dni, periodo) {
+function obtenerEstadoInscripcionPorPeriodo(dni, periodo) {
   if (!dni) return "No inscrito";
   const inscripcion = [...mockDb.inscripciones]
     .reverse()

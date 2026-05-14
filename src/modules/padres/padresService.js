@@ -11,7 +11,7 @@ export async function obtenerResumenPadre(dni) {
   const estudiante = mockDb.estudiantes[dniLimpio] || null;
 
   if (!estudiante) {
-    throw new Error("No se encontrÃƒÂ³ informaciÃƒÂ³n del estudiante.");
+    throw new Error("No se encontró información del estudiante.");
   }
 
   const invitaciones = obtenerInvitaciones(dniLimpio);
@@ -39,7 +39,7 @@ export async function guardarDatosApoderadoPadres(dni, datos) {
 
   const dniLimpio = String(dni || "").replace(/\D/g, "");
   const estudiante = mockDb.estudiantes[dniLimpio];
-  if (!estudiante) throw new Error("No se encontrÃƒÂ³ informaciÃƒÂ³n del estudiante.");
+  if (!estudiante) throw new Error("No se encontró información del estudiante.");
 
   estudiante.apoderado = limpiarTexto(datos.apoderado);
   estudiante.telefonoApoderado = limpiarTexto(datos.telefono);
@@ -67,19 +67,19 @@ export async function registrarInscripcionPadres(dni, datos, programaId = "") {
 
   const dniLimpio = String(dni || "").replace(/\D/g, "");
   const estudiante = mockDb.estudiantes[dniLimpio];
-  if (!estudiante) throw new Error("No se encontro informacion del estudiante.");
+  if (!estudiante) throw new Error("No se encontró información del estudiante.");
 
   const invitacion = obtenerInvitaciones(dniLimpio)[0];
   const programaSeleccionadoId = programaId || invitacion?.programaId;
   if (!programaSeleccionadoId) throw new Error("Seleccione un curso disponible para registrar.");
 
   const programa = mockDb.programas.find((item) => item.id === programaSeleccionadoId);
-  if (!programa) throw new Error("El programa ya no existe. Coordinacion debe revisarlo.");
-  if (programa.estado !== "Habilitado") throw new Error("El programa no esta habilitado.");
+  if (!programa) throw new Error("El programa ya no existe. Coordinación debe revisarlo.");
+  if (programa.estado !== "Habilitado") throw new Error("El programa no está habilitado.");
 
   const ventana = obtenerVentanaInscripcion(programa.fechaInicio);
   if (!ventana.permitida) {
-    throw new Error("La inscripcion web cerro. Desde el segundo dia de clases, acerquese a Caja para evaluar el registro.");
+    throw new Error("La inscripción web cerró. Desde el segundo día de clases, acérquese a Caja para evaluar el registro.");
   }
 
   if (Number(programa.cuposOcupados || 0) >= Number(programa.cupos || 0)) {
@@ -91,7 +91,7 @@ export async function registrarInscripcionPadres(dni, datos, programaId = "") {
     item.estadoInscripcion !== "Anulada" &&
     item.dniEstudiante === dniLimpio
   );
-  if (duplicada) throw new Error("El estudiante ya tiene una inscripcion registrada en este programa.");
+  if (duplicada) throw new Error("El estudiante ya tiene una inscripción registrada en este programa.");
 
   const registro = {
     id: `INS-${Date.now().toString().slice(-6)}`,
@@ -124,7 +124,6 @@ export async function registrarInscripcionPadres(dni, datos, programaId = "") {
     correo: limpiarTexto(datos.correo || estudiante.correoApoderado),
     medioEnvio: limpiarTexto(datos.medioEnvio || estudiante.medioEnvio || "WhatsApp"),
     observacion: invitacion ? "Registro solicitado desde portal de padres." : "Registro libre solicitado desde portal de padres.",
-    estadoInscripcion: "Pendiente de pago",
     estadoInscripcion: "Pendiente de pago",
     estadoPago: "Pendiente",
     origenRegistro: "Portal padres",
@@ -250,9 +249,9 @@ function normalizarInscripcion(inscripcion) {
 
 function obtenerEstadoInscripcion(inscripcion) {
   return inscripcion.estadoInscripcion ||
-    inscripcion.estadoInscripcion ||
-    inscripcion["estadoInscripciÃƒÆ’Ã‚Â³n"] ||
-    inscripcion["estadoInscripciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n"] ||
+    inscripcion.estadoInscripción ||
+    inscripcion.estadoInscripción ||
+    inscripcion.estadoInscripción ||
     "Pendiente";
 }
 
@@ -267,7 +266,7 @@ function resolverHorarioPorGrado(programa, gradoAlumno = "") {
 
   if (!grupo) return "";
   const grados = (grupo.grados || []).map(formatearGrado).filter(Boolean).join(", ");
-  const aula = grupo.aula ? ` Ã‚Â· Aula ${grupo.aula}` : "";
+  const aula = grupo.aula ? ` · Aula ${grupo.aula}` : "";
   return `${grados ? `${grados}: ` : ""}${grupo.dia} almuerzo ${grupo.almuerzoInicio || "14:20"}-${grupo.almuerzoFin || "15:10"}, clase ${grupo.horaInicio || ""}-${grupo.horaFin || ""}${aula}`;
 }
 
@@ -288,18 +287,18 @@ function calcularEstadoGeneral(inscripcion, invitacion) {
     if (String(inscripcion.estadoPago || "").toLowerCase().includes("pag")) {
       return { texto: "Inscrito con pago registrado", tono: "success" };
     }
-    return { texto: "InscripciÃƒÂ³n pendiente de pago", tono: "warning" };
+    return { texto: "Inscripción pendiente de pago", tono: "warning" };
   }
 
   if (invitacion) {
-    return { texto: "InvitaciÃƒÂ³n disponible", tono: "info" };
+    return { texto: "Invitación disponible", tono: "info" };
   }
 
   return { texto: "Sin programa asignado", tono: "neutral" };
 }
 
 function normalizarPeriodoTexto(periodo) {
-  return String(periodo || "").toLowerCase().includes("verano") ? "Ciclo verano" : "AÃƒÂ±o escolar";
+  return String(periodo || "").toLowerCase().includes("verano") ? "Ciclo verano" : "Año escolar";
 }
 
 function normalizarTexto(texto) {
