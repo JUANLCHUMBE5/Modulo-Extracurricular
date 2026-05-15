@@ -2,6 +2,7 @@ import { mockDb, nextMockId, saveMockDb, syncMockDbFromStorage } from "../../../
 import { fechaActualInput, fechaActualIso, normalizarFecha } from "../../../services/dateService";
 
 const delay = (ms = 600) => new Promise((resolve) => setTimeout(resolve, ms));
+const obtenerApiBase = () => import.meta.env.VITE_LOCAL_API_URL || "";
 
 export async function listarCategorias() {
   await delay(300);
@@ -257,7 +258,7 @@ export async function previsualizarCargaAlumnos({ periodo, archivoNombre, archiv
   formData.append("programas", JSON.stringify(mockDb.programas));
   formData.append("existentes", JSON.stringify(mockDb.invitadosPorPrograma));
 
-  const response = await fetch("/api/coordinacion/cargas/preview", {
+  const response = await fetch(`${obtenerApiBase()}/api/coordinacion/cargas/preview`, {
     method: "POST",
     body: formData,
   });

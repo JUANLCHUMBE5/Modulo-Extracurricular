@@ -229,7 +229,7 @@ async function persistirApiLocal(data) {
 }
 
 function obtenerApiBase() {
-  return import.meta.env.VITE_LOCAL_API_URL || "http://127.0.0.1:5175";
+  return import.meta.env.VITE_LOCAL_API_URL || "";
 }
 
 function loadDatabase() {

@@ -351,12 +351,14 @@ function resolverHorarioPorGrado(programa, gradoAlumno = "") {
 
   const gradoNormalizado = descomponerGrado(gradoAlumno);
   if (!gradoNormalizado.numero) return "";
-  const grupo = grupos.find((item) =>
-    (item.grados || []).some((grado) => coincideGrado(grado, gradoNormalizado))
-  );
+  let gradoDelTurno = "";
+  const grupo = grupos.find((item) => {
+    gradoDelTurno = (item.grados || []).find((grado) => coincideGrado(grado, gradoNormalizado)) || "";
+    return Boolean(gradoDelTurno);
+  });
 
   if (!grupo) return "";
-  const grados = (grupo.grados || []).map(formatearGrado).filter(Boolean).join(", ");
+  const grados = formatearGrado(gradoDelTurno || gradoAlumno);
   const aula = grupo.aula ? ` · Aula ${grupo.aula}` : "";
   return `${grados ? `${grados}: ` : ""}${grupo.dia} almuerzo ${grupo.almuerzoInicio || "14:20"}-${grupo.almuerzoFin || "15:10"}, clase ${grupo.horaInicio || ""}-${grupo.horaFin || ""}${aula}`;
 }

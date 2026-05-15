@@ -56,9 +56,8 @@ function FichaAceptación({ estudiante, inscripcion, onClose }) {
       generarComunicadoWordBlob({ estudiante, inscripcion })
         .then(async (blob) => {
           if (!activo || !wordPreviewRef.current) return;
-          const blobVista = await crearWordVistaUnaHoja(blob);
           wordPreviewRef.current.innerHTML = "";
-          await renderAsync(blobVista, wordPreviewRef.current, null, {
+          await renderAsync(blob, wordPreviewRef.current, null, {
             className: "secretaria-docx-preview",
             inWrapper: true,
             ignoreWidth: false,
@@ -69,7 +68,7 @@ function FichaAceptación({ estudiante, inscripcion, onClose }) {
             breakPages: false,
             ignoreLastRenderedPageBreak: false,
           });
-          compactarVistaDocxEnUnaHoja(wordPreviewRef.current);
+          prepararVistaDocxParaImpresion(wordPreviewRef.current);
           if (activo) setWordPreview({ cargando: false, error: "" });
         })
         .catch(() => {
@@ -103,7 +102,7 @@ function FichaAceptación({ estudiante, inscripcion, onClose }) {
         setWordPreview((actual) => ({
           ...actual,
           cargando: false,
-          error: err.message || "No se pudo preparar la ficha para impresión.",
+          error: err.message || "No se pudo convertir el Word original a PDF.",
         }));
       } finally {
         setImprimiendoFicha(false);
@@ -471,43 +470,7 @@ function limpiarPaginasDocxVacias(contenedor) {
   });
 }
 
-async function crearWordVistaUnaHoja(blob) {
-  try {
-    const zip = await JSZip.loadAsync(blob);
-    const documento = zip.file("word/document.xml");
-    if (!documento) return blob;
-
-    const xml = await documento.async("text");
-    zip.file("word/document.xml", limpiarSaltosWordParaVista(xml));
-
-    return await zip.generateAsync({
-      type: "blob",
-      mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    });
-  } catch {
-    return blob;
-  }
-}
-
-function limpiarSaltosWordParaVista(xml) {
-  let limpio = String(xml || "")
-    .replace(/<w:lastRenderedPageBreak\s*\/>/gi, "")
-    .replace(/<w:br\b(?=[^>]*w:type="page")[^>]*\/>/gi, "")
-    .replace(/<w:pageBreakBefore\b[^>]*(?:\/>|>[\s\S]*?<\/w:pageBreakBefore>)/gi, "");
-
-  const secciones = limpio.match(/<w:sectPr[\s\S]*?<\/w:sectPr>/gi) || [];
-  if (secciones.length > 1) {
-    let indice = 0;
-    limpio = limpio.replace(/<w:sectPr[\s\S]*?<\/w:sectPr>/gi, (coincidencia) => {
-      indice += 1;
-      return indice === secciones.length ? coincidencia : "";
-    });
-  }
-
-  return limpio;
-}
-
-function compactarVistaDocxEnUnaHoja(contenedor) {
+function prepararVistaDocxParaImpresion(contenedor) {
   const paginas = Array.from(contenedor?.querySelectorAll(".docx") || []);
   if (!paginas.length) return;
 
@@ -527,8 +490,21 @@ function compactarVistaDocxEnUnaHoja(contenedor) {
   });
 
   principal.style.overflow = "visible";
-  principal.style.height = "auto";
   principal.style.minHeight = principal.style.minHeight || "297mm";
+  ajustarDocxAUnaPagina(principal, destino);
+}
+
+function ajustarDocxAUnaPagina(pagina, contenido) {
+  const altoPagina = pagina.getBoundingClientRect().height || 1122;
+  const altoContenido = contenido.scrollHeight || pagina.scrollHeight;
+  if (!altoPagina || !altoContenido || altoContenido <= altoPagina) return;
+
+  const escala = Math.max(0.78, Math.min(1, (altoPagina - 12) / altoContenido));
+  contenido.style.transform = `scale(${escala})`;
+  contenido.style.transformOrigin = "top left";
+  contenido.style.width = `${100 / escala}%`;
+  pagina.style.height = `${altoPagina}px`;
+  pagina.style.overflow = "hidden";
 }
 
 function paginaTieneContenidoDocx(pagina) {
@@ -767,9 +743,8 @@ function crearHorarioDocumento(inscripcion, estudiante) {
   const grupos = Array.isArray(inscripcion?.horariosPorGrupo) ? inscripcion.horariosPorGrupo : [];
   const gradoAlumno = inscripcion?.gradoEstudiante || inscripcion?.grado || estudiante?.grado || "";
   const grupo = grupos.find((item) => (item.grados || []).some((grado) => coincideGradoDocumento(grado, gradoAlumno)));
-  const nivelesTurno = grupo?.grados?.length
-    ? grupo.grados.map(formatearGradoDocumento).filter(Boolean)
-    : (gradoAlumno ? [formatearGradoDocumento(gradoAlumno)] : []);
+  const gradoDelTurno = grupo?.grados?.find((grado) => coincideGradoDocumento(grado, gradoAlumno)) || gradoAlumno;
+  const nivelesTurno = gradoDelTurno ? [formatearGradoDocumento(gradoDelTurno)] : [];
   if (!grupo) {
     return {
       dia: extraerDiasHorario(inscripcion?.horario),
@@ -966,6 +941,111 @@ function imprimirPdfBlob(pdfBlob) {
     iframe.remove();
     URL.revokeObjectURL(url);
   }, 60000);
+}
+
+async function imprimirWordRenderizado(wordBlob) {
+  const contenedor = document.createElement("div");
+  contenedor.className = "secretaria-word-document";
+  contenedor.style.position = "fixed";
+  contenedor.style.left = "-10000px";
+  contenedor.style.top = "0";
+  contenedor.style.width = "210mm";
+  contenedor.style.background = "#ffffff";
+  document.body.appendChild(contenedor);
+
+  try {
+    await renderAsync(wordBlob, contenedor, null, {
+      className: "secretaria-docx-preview",
+      inWrapper: true,
+      ignoreWidth: false,
+      ignoreHeight: false,
+      renderHeaders: true,
+      renderFooters: true,
+      renderFootnotes: true,
+      breakPages: false,
+      ignoreLastRenderedPageBreak: false,
+    });
+    prepararVistaDocxParaImpresion(contenedor);
+    await imprimirHtmlRenderizado(contenedor.innerHTML);
+  } finally {
+    contenedor.remove();
+  }
+}
+
+function imprimirHtmlRenderizado(html) {
+  return new Promise((resolve) => {
+    const iframe = document.createElement("iframe");
+    iframe.style.position = "fixed";
+    iframe.style.right = "0";
+    iframe.style.bottom = "0";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.border = "0";
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentDocument || iframe.contentWindow?.document;
+    if (!doc) {
+      iframe.remove();
+      resolve();
+      return;
+    }
+
+    doc.open();
+    doc.write(`
+      <!doctype html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <style>${obtenerEstilosParaImpresion()}</style>
+          <style>
+            @page { size: A4; margin: 0; }
+            html, body { margin: 0; padding: 0; background: #ffffff; }
+            body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+            .secretaria-word-print-root {
+              width: 210mm;
+              min-height: 297mm;
+              margin: 0 auto;
+              background: #ffffff;
+            }
+            .secretaria-word-print-root .docx-wrapper {
+              padding: 0 !important;
+              background: #ffffff !important;
+              box-shadow: none !important;
+            }
+            .secretaria-word-print-root .docx {
+              margin: 0 auto !important;
+              box-shadow: none !important;
+            }
+          </style>
+        </head>
+        <body>
+          <main class="secretaria-word-document secretaria-word-print-root">${html}</main>
+        </body>
+      </html>
+    `);
+    doc.close();
+
+    setTimeout(() => {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+      setTimeout(() => {
+        iframe.remove();
+        resolve();
+      }, 1000);
+    }, 350);
+  });
+}
+
+function obtenerEstilosParaImpresion() {
+  return Array.from(document.styleSheets)
+    .map((sheet) => {
+      try {
+        return Array.from(sheet.cssRules || []).map((rule) => rule.cssText).join("\n");
+      } catch {
+        return "";
+      }
+    })
+    .join("\n");
 }
 
 function crearHtmlImpresionFicha(ficha) {
