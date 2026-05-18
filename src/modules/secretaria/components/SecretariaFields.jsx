@@ -1,4 +1,4 @@
-import { CheckCircle2 } from "lucide-react";
+import { IconCircleCheck as CheckCircle2 } from "@tabler/icons-react";
 
 function ProcesoItem({ activo, completado, texto }) {
   return (
@@ -9,9 +9,9 @@ function ProcesoItem({ activo, completado, texto }) {
   );
 }
 
-function CampoTexto({ label, icon, value, onChange, placeholder, maxLength }) {
+function CampoTexto({ label, icon, value, onChange, placeholder, maxLength, className = "" }) {
   return (
-    <div className="secretaria-field">
+    <div className={`secretaria-field ${className}`.trim()}>
       <label>
         {icon}
         {label}
@@ -58,6 +58,24 @@ function resumirHorarioSecretaria(horario) {
   };
 }
 
+function resumirClaseSecretaria(horario) {
+  const clase = resumirHorarioSecretaria(horario).clase || "";
+  if (!clase) return String(horario || "");
+  return clase
+    .replace(/\s*-\s*/g, " - ")
+    .replace(/\b(\d{1,2}):(\d{2})\b/g, (_, hora, minuto) => formatearHoraClase(hora, minuto));
+}
+
+function formatearHoraClase(horaTexto, minutoTexto) {
+  const hora = Number(horaTexto);
+  const minuto = String(minutoTexto || "00").padStart(2, "0");
+  if (!Number.isFinite(hora)) return `${horaTexto}:${minuto}`;
+  if (hora === 0) return `12:${minuto} AM`;
+  if (hora < 12) return `${hora}:${minuto} AM`;
+  if (hora === 12) return `12:${minuto} PM`;
+  return `${hora - 12}:${minuto} PM`;
+}
+
 function formatearCuposSecretaria(programa) {
   if (!programa) return "";
   if (Number.isFinite(Number(programa.cuposDisponibles))) return String(programa.cuposDisponibles);
@@ -70,6 +88,7 @@ export {
   CampoTexto,
   CampoLectura,
   DatoHorario,
+  resumirClaseSecretaria,
   resumirHorarioSecretaria,
   formatearCuposSecretaria,
 };

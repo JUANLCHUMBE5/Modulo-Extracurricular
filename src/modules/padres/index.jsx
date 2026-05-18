@@ -1,16 +1,16 @@
 ﻿import { Alert, Group, Stack, Card, Badge, Text, Center, Loader } from "@mantine/core";
 import {
-  AlertCircle,
-  BookOpen,
-  CalendarDays,
-  CheckCircle2,
-  CreditCard,
-  Info,
-  Loader2,
-  LogOut,
-  UserRound,
-  X,
-} from "lucide-react";
+  IconAlertCircle as AlertCircle,
+  IconBook as BookOpen,
+  IconCalendar as CalendarDays,
+  IconCircleCheck as CheckCircle2,
+  IconCreditCard as CreditCard,
+  IconInfoCircle as Info,
+  IconLoader2 as Loader2,
+  IconLogout as LogOut,
+  IconUserCircle as UserRound,
+  IconX as X,
+} from "@tabler/icons-react";
 import { formatearFechaPeru } from "../../services/dateService";
 import AsistentePadres from "./components/AsistentePadres";
 import Campo from "./components/Campo";
@@ -235,10 +235,6 @@ export default function Padres({ user, onLogout }) {
                         </Group>
 
                         <Group justify="space-between" grow>
-                          <div>
-                            <Text size="xs" c="dimmed">Periodo</Text>
-                            <Text size="sm" fw={600}>{prog.periodo}</Text>
-                          </div>
                           <div>
                             <Text size="xs" c="dimmed">Cupos</Text>
                             <Text size="sm" fw={600}>{prog.cuposDisponibles} / {prog.cupos}</Text>

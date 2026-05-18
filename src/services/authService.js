@@ -2,25 +2,42 @@ import { apiDb, syncApiDb } from "./dbApi";
 
 const delay = (ms = 650) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const usuariosInternos = {
-  admin: { role: "administrador", name: "Administrador General" },
-  secre: { role: "secretaria", name: "Secretaria" },
-  caja: { role: "caja", name: "Caja" },
-  coord: { role: "coordinacion", name: "Coordinación" },
-  aux: { role: "auxiliar", name: "Auxiliar" },
-  dir: { role: "direccion", name: "Dirección" },
-  profe: { role: "coordinacion", name: "Profesor" },
+const aliasesUsuario = {
+  secre: "secretaria",
+  coord: "coordinacion",
+};
+
+const rolesSistema = {
+  Administrador: "administrador",
+  Secretaria: "secretaria",
+  Caja: "caja",
+  Coordinacion: "coordinacion",
+  Auxiliar: "auxiliar",
+  Direccion: "direccion",
 };
 
 export const loginPersonal = async (username, password) => {
-  // Temporal: reemplazar por POST /api/auth/login cuando exista el backend real.
   await delay();
+  await syncApiDb();
 
   const usuarioLimpio = String(username || "").trim().toLowerCase();
-  const user = usuariosInternos[usuarioLimpio];
+  const usuarioBuscado = aliasesUsuario[usuarioLimpio] || usuarioLimpio;
+  const usuarios = Array.isArray(apiDb.usuarios) ? apiDb.usuarios : [];
+  const usuario = usuarios.find((item) =>
+    String(item.usuario || "").trim().toLowerCase() === usuarioBuscado
+  );
 
-  if (user && password === "1234") {
-    return { success: true, user: { username: usuarioLimpio, ...user } };
+  const contrasenaGuardada = String(usuario?.contrasena || "1234");
+
+  if (usuario && usuario.estado !== "Inactivo" && String(password) === contrasenaGuardada) {
+    return {
+      success: true,
+      user: {
+        username: usuario.usuario,
+        role: rolesSistema[usuario.rol] || String(usuario.rol || "").toLowerCase(),
+        name: usuario.nombre,
+      },
+    };
   }
 
   return { success: false, message: "Usuario o contraseña incorrectos." };

@@ -4,6 +4,7 @@ import Coordinacion from "./modules/coordinacion/Coordinacion";
 import Secretaria from "./modules/secretaria/Secretaria";
 import Administrador from "./modules/administrador/Administrador";
 import Padres from "./modules/padres";
+import Auxiliar from "./modules/auxiliar/Auxiliar";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -30,6 +31,8 @@ function App() {
         return <Secretaria onLogout={handleLogout} />;
       case "padres":
         return <Padres user={user} onLogout={handleLogout} />;
+      case "auxiliar":
+        return <Auxiliar onLogout={handleLogout} />;
       default:
         return (
           <div className="module-placeholder">

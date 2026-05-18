@@ -8,14 +8,14 @@ import {
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import {
-  AlertCircle,
-  Calendar,
-  IdCard,
-  Loader2,
-  Lock,
-  LogIn,
-  User,
-} from "lucide-react";
+  IconAlertCircle as AlertCircle,
+  IconCalendar as Calendar,
+  IconId as IdCard,
+  IconLoader2 as Loader2,
+  IconLock as Lock,
+  IconLogin as LogIn,
+  IconUser as User,
+} from "@tabler/icons-react";
 import { loginPadre, loginPersonal } from "../../services/authService";
 import { fechaActualInput } from "../../services/dateService";
 import "./Login.css";

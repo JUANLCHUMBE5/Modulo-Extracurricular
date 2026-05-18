@@ -2,22 +2,23 @@
 import { Alert as MantineAlert } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import {
-  AlertCircle,
-  CalendarDays,
-  CheckCircle2,
-  ChevronRight,
-  ClipboardCheck,
-  FileText,
-  IdCard,
-  Loader2,
-  LogOut,
-  Mail,
-  Phone,
-  Printer,
-  Search,
-  UserRound,
-  X,
-} from "lucide-react";
+  IconAlertCircle as AlertCircle,
+  IconCalendar as CalendarDays,
+  IconChevronRight as ChevronRight,
+  IconCircleCheck as CheckCircle2,
+  IconClipboardCheck as ClipboardCheck,
+  IconFileText as FileText,
+  IconId as IdCard,
+  IconLoader2 as Loader2,
+  IconLogout as LogOut,
+  IconMail as Mail,
+  IconPhone as Phone,
+  IconPrinter as Printer,
+  IconSearch as Search,
+  IconUserPlus as UserPlus,
+  IconUserCircle as UserRound,
+  IconX as X,
+} from "@tabler/icons-react";
 import {
   buscarEstudiantePorDni,
   buscarEstudiantesPorNombre,
@@ -36,6 +37,7 @@ import {
 import {
   formatearFechaPeru,
 } from "../../services/dateService";
+import { resolverHorarioPorGradoLocal } from "./utils/horariosSecretaria";
 import { FichaAceptación, imprimirInscripcionDirecta } from "./components/SecretariaFicha";
 import {
   CampoLectura,
@@ -43,6 +45,7 @@ import {
   DatoHorario,
   ProcesoItem,
   formatearCuposSecretaria,
+  resumirClaseSecretaria,
   resumirHorarioSecretaria,
 } from "./components/SecretariaFields";
 import "./Secretaria.css";
@@ -51,7 +54,13 @@ const LOGO_COLEGIO_URL =
   "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT8ss429VynuUkBBQBrN6Up-lUBby7o0oqjvQ&s";
 
 const formularioInicial = {
+  dniExterno: "",
   nombresExterno: "",
+  edadExterno: "",
+  domicilioExterno: "",
+  sexoExterno: "",
+  tipoAlumnoVerano: "Alumno externo",
+  gradoExterno: "",
   programa: "",
   colegioProcedencia: "",
   apoderado: "",
@@ -204,29 +213,45 @@ function Secretaria({ onLogout }) {
         return;
       }
 
-      setEstudiante({
-        dni,
-        nombres: "Alumno externo por registrar",
-        grado: "No aplica",
-        seccion: "No aplica",
-        tipoAlumno: "Alumno externo",
-        periodo: "Ciclo verano",
-        tieneInvitacion: false,
-        requiereUniforme: false,
-        programaAsignado: "",
-        estadoInscripción: "Nuevo registro",
-        esExterno: true,
-      });
-      setFormulario({
-        ...formularioInicial,
-        programa: "",
-      });
-      setModoRegistro(true);
-      setMensaje("");
+      await abrirRegistroAlumnoExterno(dni);
       return;
     }
 
     await aplicarEstudianteEncontrado(encontrado);
+  }
+
+  async function abrirRegistroAlumnoExterno(dniSugerido = "") {
+    if (periodo !== "verano") {
+      mostrarMensaje("El registro de alumno externo solo esta disponible en ciclo verano.");
+      return;
+    }
+
+    const dniLimpio = String(dniSugerido || dni || "").replace(/\D/g, "").slice(0, 8);
+    const programasActualizados = await cargarProgramasDelPeriodo();
+    const primerProgramaPeriodo = programasActualizados[0]?.id || "";
+
+    setInscripción(null);
+    setResultadosNombre([]);
+    setEstudiante({
+      dni: dniLimpio,
+      nombres: "Alumno externo por registrar",
+      grado: "Por registrar",
+      seccion: "Por registrar",
+      tipoAlumno: "Alumno externo",
+      periodo: "Ciclo verano",
+      tieneInvitacion: false,
+      requiereUniforme: false,
+      programaAsignado: "",
+      estadoInscripción: "Nuevo registro",
+      esExterno: true,
+    });
+    setFormulario({
+      ...formularioInicial,
+      dniExterno: dniLimpio,
+      programa: primerProgramaPeriodo,
+    });
+    setModoRegistro(true);
+    setMensaje("");
   }
 
   async function aplicarEstudianteEncontrado(encontrado) {
@@ -283,9 +308,35 @@ function Secretaria({ onLogout }) {
       return;
     }
 
-    if (estudiante.esExterno && !validarTextoSeguro(formulario.nombresExterno)) {
-      mostrarMensaje("Ingrese el nombre completo del alumno externo.");
-      return;
+    if (estudiante.esExterno) {
+      if (!validarDni(formulario.dniExterno)) {
+        mostrarMensaje("Ingrese el DNI del alumno externo con 8 numeros.");
+        return;
+      }
+      if (!validarTextoSeguro(formulario.nombresExterno)) {
+        mostrarMensaje("Ingrese el nombre completo del alumno externo.");
+        return;
+      }
+      if (!validarTextoSeguro(formulario.edadExterno) || Number(formulario.edadExterno) <= 0) {
+        mostrarMensaje("Ingrese la edad del estudiante.");
+        return;
+      }
+      if (!validarTextoSeguro(formulario.domicilioExterno)) {
+        mostrarMensaje("Ingrese el domicilio del estudiante.");
+        return;
+      }
+      if (!formulario.sexoExterno) {
+        mostrarMensaje("Seleccione el sexo del estudiante.");
+        return;
+      }
+      if (!formulario.tipoAlumnoVerano) {
+        mostrarMensaje("Seleccione si el estudiante es interno o externo.");
+        return;
+      }
+      if (!validarTextoSeguro(formulario.gradoExterno)) {
+        mostrarMensaje("Ingrese el grado del alumno externo.");
+        return;
+      }
     }
 
     const requiereSeleccionPrograma = periodo === "verano" || !estudiante.tieneInvitacion;
@@ -346,14 +397,29 @@ function Secretaria({ onLogout }) {
 
     try {
       setGuardando(true);
+      const dniRegistro = estudiante.esExterno ? formulario.dniExterno.trim() : estudiante.dni;
+      const nombresRegistro = estudiante.esExterno
+        ? formulario.nombresExterno.trim()
+        : estudiante.nombres;
+      const gradoRegistro = estudiante.esExterno
+        ? formulario.gradoExterno.trim()
+        : estudiante.grado || "";
       const registro = await registrarInscripcion({
-        dniEstudiante: estudiante.dni,
+        dniEstudiante: dniRegistro,
         codigoEstudiante: estudiante.codigoEstudiante || "",
-        gradoEstudiante: estudiante.grado || "",
-        nombresEstudiante: estudiante.esExterno
-          ? formulario.nombresExterno.trim()
-          : estudiante.nombres,
+        gradoEstudiante: gradoRegistro,
+        seccionEstudiante: estudiante.esExterno ? "" : estudiante.seccion || "",
+        nombresEstudiante: nombresRegistro,
+        esExterno: estudiante.esExterno && formulario.tipoAlumnoVerano === "Alumno externo",
+        esNuevoVerano: Boolean(estudiante.esExterno),
+        edadEstudiante: estudiante.esExterno ? formulario.edadExterno.trim() : "",
+        domicilioEstudiante: estudiante.esExterno ? formulario.domicilioExterno.trim() : "",
+        sexoEstudiante: estudiante.esExterno ? formulario.sexoExterno : "",
+        tipoAlumno: estudiante.esExterno ? formulario.tipoAlumnoVerano : estudiante.tipoAlumno,
         tipoInscripción:
+          estudiante.esExterno
+            ? (formulario.tipoAlumnoVerano === "Alumno externo" ? "Verano externo" : "Verano interno")
+            :
           periodo === "escolar" && !estudiante.tieneInvitacion
             ? "Excepcional"
             : "Regular",
@@ -372,7 +438,9 @@ function Secretaria({ onLogout }) {
         medioEnvio: formulario.medioEnvio,
         tallaUniforme: formulario.tallaUniforme,
         observacion: formulario.observacion.trim(),
-        origenRegistro: estudiante.tieneInvitacion
+        origenRegistro: estudiante.esExterno
+          ? "Alumno externo de ciclo verano"
+          : estudiante.tieneInvitacion
           ? "Alumno invitado por Coordinación"
           : "Registro excepcional por Secretaría",
       });
@@ -380,7 +448,16 @@ function Secretaria({ onLogout }) {
       setInscripción(registro);
       setDocumentoGenerado(false);
       setEstudiante((actual) =>
-        actual ? { ...actual, estadoInscripción: registro.estadoInscripción, estadoPago: registro.estadoPago } : actual
+        actual ? {
+          ...actual,
+          dni: dniRegistro,
+          nombres: nombresRegistro,
+          grado: gradoRegistro,
+          seccion: estudiante.esExterno ? "" : actual.seccion,
+          tipoAlumno: registro.tipoAlumno,
+          estadoInscripción: registro.estadoInscripción,
+          estadoPago: registro.estadoPago,
+        } : actual
       );
       setModoRegistro(false);
       setModalExito(true);
@@ -508,20 +585,6 @@ function Secretaria({ onLogout }) {
       </aside>
 
       <main className="secretaria-main">
-        <header className="secretaria-topbar">
-          <div className="secretaria-topbar-brand">
-            <div>
-              <span className="secretaria-topbar-badge">Secretaria academica</span>
-              <h1>Inscripcion extracurricular</h1>
-              <p></p>
-            </div>
-            <div className="secretaria-topbar-status" aria-label="Estado del modulo">
-              <CheckCircle2 size={18} />
-              <span>Modulo activo</span>
-            </div>
-          </div>
-        </header>
-
         <section className="secretaria-workspace secretaria-workspace-system">
           <article className="secretaria-card secretaria-search-card">
             <div className="secretaria-card-title">
@@ -572,6 +635,16 @@ function Secretaria({ onLogout }) {
                   )}
                   <span>{buscando ? "Buscando" : "Buscar"}</span>
                 </button>
+                {periodo === "verano" ? (
+                  <button
+                    className="secretaria-secondary-button secretaria-new-summer-student"
+                    type="button"
+                    onClick={() => abrirRegistroAlumnoExterno()}
+                  >
+                    <UserPlus size={17} />
+                    <span>Nuevo estudiante de verano</span>
+                  </button>
+                ) : null}
 
               </div>
             </form>
@@ -683,7 +756,7 @@ function Secretaria({ onLogout }) {
                     <>
                       <div className="secretaria-data-program">
                         <dt>Horario</dt>
-                        <dd>{inscripcion.horario}</dd>
+                        <dd>{resumirClaseSecretaria(inscripcion.horario)}</dd>
                       </div>
                       <div className="secretaria-data-program">
                         <dt>Costo referencial</dt>
@@ -771,11 +844,7 @@ function Secretaria({ onLogout }) {
                 <strong>{inscripcion.id}</strong>
                 <p>Pago pendiente. Puede derivar a Caja.</p>
               </div>
-            ) : (
-              <p className="secretaria-process-note">
-                Complete la busqueda y el registro para habilitar la derivacion.
-              </p>
-            )}
+            ) : null}
           </aside>
 
         </section>
@@ -818,7 +887,9 @@ function Secretaria({ onLogout }) {
                   <p><strong>Nombre y apellido:</strong> {estudiante.nombres}</p>
                   <p><strong>DNI:</strong> {estudiante.dni || "Sin DNI"}</p>
                   <p><strong>Grado:</strong> {estudiante.grado}</p>
-                  <p><strong>Sección:</strong> {estudiante.seccion || "Sin sección"}</p>
+                  {!estudiante.esExterno ? (
+                    <p><strong>Sección:</strong> {estudiante.seccion || "Sin sección"}</p>
+                  ) : null}
                 </div>
 
                 {mensaje ? (
@@ -833,12 +904,70 @@ function Secretaria({ onLogout }) {
                 ) : null}
 
                 {estudiante.esExterno ? (
-                  <CampoTexto
-                    label="Nombre del alumno externo"
-                    value={formulario.nombresExterno}
-                    onChange={(value) => actualizarFormulario("nombresExterno", value)}
-                    placeholder="Nombre completo del estudiante"
-                  />
+                  <div className="secretaria-registration-section secretaria-registration-minor secretaria-field-full">
+                    <div className="secretaria-registration-section-head">
+                      <strong>Datos del menor</strong>
+                      <span>Solo se registra como alumno externo en ciclo verano</span>
+                    </div>
+
+                    <CampoTexto
+                      label="DNI del alumno"
+                      value={formulario.dniExterno}
+                      onChange={(value) => actualizarFormulario("dniExterno", value.replace(/\D/g, "").slice(0, 8))}
+                      placeholder="DNI de 8 numeros"
+                      maxLength="8"
+                    />
+                    <CampoTexto
+                      label="Nombre y apellidos del estudiante"
+                      value={formulario.nombresExterno}
+                      onChange={(value) => actualizarFormulario("nombresExterno", value)}
+                      placeholder="Nombre completo del estudiante"
+                    />
+                    <CampoTexto
+                      label="Edad"
+                      className="secretaria-field-short secretaria-age-field"
+                      value={formulario.edadExterno}
+                      onChange={(value) => actualizarFormulario("edadExterno", value.replace(/\D/g, "").slice(0, 2))}
+                      placeholder="Ej: 9"
+                      maxLength="2"
+                    />
+                    <CampoTexto
+                      label="Domicilio"
+                      className="secretaria-field-wide"
+                      value={formulario.domicilioExterno}
+                      onChange={(value) => actualizarFormulario("domicilioExterno", value)}
+                      placeholder="Dirección del estudiante"
+                    />
+                    <div className="secretaria-field secretaria-field-short">
+                      <label htmlFor="sexoExterno">Sexo</label>
+                      <select
+                        id="sexoExterno"
+                        value={formulario.sexoExterno}
+                        onChange={(event) => actualizarFormulario("sexoExterno", event.target.value)}
+                      >
+                        <option value="">Seleccione</option>
+                        <option value="F">Femenino</option>
+                        <option value="M">Masculino</option>
+                      </select>
+                    </div>
+                    <div className="secretaria-field secretaria-field-medium">
+                      <label htmlFor="tipoAlumnoVerano">Interno o externo</label>
+                      <select
+                        id="tipoAlumnoVerano"
+                        value={formulario.tipoAlumnoVerano}
+                        onChange={(event) => actualizarFormulario("tipoAlumnoVerano", event.target.value)}
+                      >
+                        <option value="Alumno externo">Externo</option>
+                        <option value="Alumno interno">Interno</option>
+                      </select>
+                    </div>
+                    <CampoTexto
+                      label="Grado"
+                      value={formulario.gradoExterno}
+                      onChange={(value) => actualizarFormulario("gradoExterno", value)}
+                      placeholder="Ej: 4 Primaria"
+                    />
+                  </div>
                 ) : null}
 
                 <div className="secretaria-registration-section secretaria-registration-program secretaria-field-full">
@@ -1048,53 +1177,6 @@ function Secretaria({ onLogout }) {
       </main>
     </div>
   );
-}
-
-function resolverHorarioPorGradoLocal(programa, gradoAlumno = "") {
-  const grupos = programa?.horariosPorGrupo || [];
-  if (!Array.isArray(grupos) || grupos.length === 0) return "";
-
-  const gradoNormalizado = descomponerGradoLocal(gradoAlumno);
-  if (!gradoNormalizado.numero) return "";
-
-  let gradoDelTurno = "";
-  const grupo = grupos.find((item) => {
-    gradoDelTurno = (item.grados || []).find((grado) => coincideGradoLocal(grado, gradoNormalizado)) || "";
-    return Boolean(gradoDelTurno);
-  });
-
-  if (!grupo) return "";
-  const grado = formatearGradoLocal(gradoDelTurno || gradoAlumno);
-  const aula = grupo.aula ? ` · Aula ${grupo.aula}` : "";
-  return `${grado ? `${grado}: ` : ""}${grupo.dia} almuerzo ${grupo.almuerzoInicio || "14:20"}-${grupo.almuerzoFin || "15:10"}, clase ${grupo.horaInicio || ""}-${grupo.horaFin || ""}${aula}`;
-}
-
-function coincideGradoLocal(gradoGrupo, gradoAlumnoNormalizado) {
-  const grupo = descomponerGradoLocal(gradoGrupo);
-  if (!grupo.numero || !gradoAlumnoNormalizado?.numero) return false;
-  if (grupo.numero !== gradoAlumnoNormalizado.numero) return false;
-  return !grupo.nivel || !gradoAlumnoNormalizado.nivel || grupo.nivel === gradoAlumnoNormalizado.nivel;
-}
-
-function formatearGradoLocal(valor) {
-  const [nivel, grado] = String(valor || "").split(":");
-  if (!nivel || !grado) return valor;
-  return `${nivel} ${grado}`;
-}
-
-function descomponerGradoLocal(valor) {
-  const texto = normalizarComparacion(valor).replace(":", " ");
-  const nivel = ["inicial", "primaria", "secundaria"].find((item) => texto.includes(item)) || "";
-  const numero = texto.match(/\d+/)?.[0] || "";
-  return { nivel, numero };
-}
-
-function normalizarComparacion(valor) {
-  return String(valor || "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim();
 }
 
 export default Secretaria;

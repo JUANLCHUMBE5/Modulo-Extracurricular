@@ -5,7 +5,7 @@ const delay = (ms = 500) => new Promise((resolve) => setTimeout(resolve, ms));
 export async function listarUsuarios() {
   await delay(300);
   await syncApiDb();
-  return [...apiDb.usuarios];
+  return Array.isArray(apiDb.usuarios) ? [...apiDb.usuarios] : [];
 }
 
 export async function crearUsuario(datos) {

@@ -1,0 +1,290 @@
+﻿/* Secretaria clean workspace */
+.secretaria-layout {
+  grid-template-columns: 238px 1fr;
+  background:
+    linear-gradient(120deg, rgba(35, 151, 127, 0.12) 0%, rgba(255, 255, 255, 0) 38%),
+    #f6fbf9;
+}
+
+.secretaria-sidebar {
+  background: #0d3b35;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.secretaria-brand {
+  justify-content: center;
+  min-height: 72px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.secretaria-brand-logo-frame {
+  width: 62px;
+  height: 62px;
+  padding: 6px;
+  border-radius: 18px;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.18);
+}
+
+.secretaria-module-label {
+  margin: 18px 10px 12px;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 11px;
+}
+
+.secretaria-nav-item,
+.secretaria-logout {
+  border-radius: 14px;
+}
+
+.secretaria-nav-item-active {
+  background: #1aa386;
+  box-shadow: none;
+}
+
+.secretaria-main {
+  padding: 40px 44px;
+}
+
+.secretaria-topbar {
+  max-width: 1060px;
+  margin: 0 auto 16px;
+}
+
+.secretaria-topbar-brand {
+  display: block;
+}
+
+.secretaria-topbar h1 {
+  margin: 0;
+  font-size: 29px;
+  line-height: 1.1;
+}
+
+.secretaria-topbar p,
+.secretaria-topbar-badge,
+.secretaria-topbar-logo-frame {
+  display: none;
+}
+
+.secretaria-workspace {
+  max-width: 1060px;
+  grid-template-columns: minmax(0, 1fr) 252px;
+  gap: 22px;
+}
+
+.secretaria-card {
+  border-color: rgba(191, 216, 211, 0.82);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 24px 60px rgba(21, 66, 58, 0.1);
+}
+
+.secretaria-search-card {
+  min-height: 320px;
+  padding: 24px 24px 26px;
+}
+
+.secretaria-card-title {
+  margin-bottom: 16px;
+}
+
+.secretaria-card-title p {
+  display: none;
+}
+
+.secretaria-title-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 14px;
+}
+
+.secretaria-card-title h2 {
+  font-size: 16px;
+}
+
+.secretaria-form {
+  gap: 10px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.secretaria-field label {
+  margin-left: 2px;
+}
+
+.secretaria-form select,
+.secretaria-input-wrap {
+  height: 44px;
+  border-radius: 13px;
+  background: #ffffff;
+}
+
+.secretaria-search-row {
+  grid-template-columns: minmax(0, 1fr) 112px;
+  gap: 8px;
+}
+
+.secretaria-primary-button,
+.secretaria-register-button,
+.secretaria-secondary-button {
+  min-height: 44px;
+  border-radius: 13px;
+}
+
+.secretaria-process-card {
+  padding: 17px;
+  align-self: start;
+  position: sticky;
+  top: 24px;
+}
+
+.secretaria-process-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.secretaria-process-heading h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.secretaria-process-heading span {
+  padding: 5px 8px;
+  border-radius: 999px;
+  color: #176c60;
+  background: #e8f7f2;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.secretaria-process-card .secretaria-process-list {
+  gap: 8px;
+}
+
+.secretaria-process-card .secretaria-process-item {
+  min-height: 38px;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.secretaria-ticket {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 14px;
+  background: #f0faf7;
+}
+
+.secretaria-ticket p,
+.secretaria-process-note {
+  margin-bottom: 0;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* Secretary workspace sizing polish */
+.secretaria-main {
+  padding: 44px 56px;
+}
+
+.secretaria-topbar {
+  max-width: 1280px;
+  margin: 0 auto 18px;
+}
+
+.secretaria-topbar h1 {
+  font-size: clamp(32px, 2.5vw, 42px);
+  line-height: 1.08;
+}
+
+.secretaria-workspace {
+  max-width: 1280px;
+  grid-template-columns: minmax(760px, 1fr) 320px;
+  gap: 26px;
+}
+
+.secretaria-search-card {
+  min-height: 390px;
+  padding: 30px 32px 34px;
+}
+
+.secretaria-card-title {
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.secretaria-title-icon {
+  width: 42px;
+  height: 42px;
+}
+
+.secretaria-card-title h2 {
+  font-size: 20px;
+}
+
+.secretaria-form {
+  gap: 14px;
+}
+
+.secretaria-field label {
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.secretaria-form select,
+.secretaria-input-wrap {
+  height: 52px;
+  border-radius: 14px;
+}
+
+.secretaria-input-wrap input,
+.secretaria-form select {
+  font-size: 15px;
+}
+
+.secretaria-search-row {
+  grid-template-columns: minmax(0, 1fr) 132px;
+  gap: 12px;
+}
+
+.secretaria-primary-button,
+.secretaria-register-button,
+.secretaria-secondary-button {
+  min-height: 52px;
+  border-radius: 14px;
+  font-size: 14px;
+}
+
+.secretaria-process-card {
+  width: 100%;
+  padding: 22px;
+}
+
+.secretaria-process-heading h2 {
+  font-size: 18px;
+}
+
+.secretaria-process-card .secretaria-process-list {
+  gap: 10px;
+}
+
+.secretaria-process-card .secretaria-process-item {
+  min-height: 48px;
+  border-radius: 14px;
+  font-size: 14px;
+}
+
+.secretaria-process-note {
+  font-size: 13px;
+}
+

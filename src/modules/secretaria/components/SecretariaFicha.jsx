@@ -4,7 +4,12 @@ import JSZip from "jszip";
 import PizZip from "pizzip";
 import Docxtemplater from "docxtemplater";
 import { renderAsync } from "docx-preview";
-import { FileText, Loader2, Printer, X } from "lucide-react";
+import {
+  IconFileText as FileText,
+  IconLoader2 as Loader2,
+  IconPrinter as Printer,
+  IconX as X,
+} from "@tabler/icons-react";
 import {
   calcularDuracionTexto as calcularDuracionFechas,
   formatearFechaPeru,

@@ -1,0 +1,657 @@
+﻿/* Modern Secretaria refresh */
+.secretaria-layout {
+  background:
+    radial-gradient(circle at 28% 10%, rgba(47, 143, 122, 0.13), transparent 30%),
+    radial-gradient(circle at 92% 18%, rgba(49, 95, 145, 0.1), transparent 28%),
+    linear-gradient(180deg, #f7fbfa 0%, #eef6f3 100%);
+}
+
+.secretaria-main {
+  padding: 42px clamp(34px, 4vw, 72px) 54px;
+}
+
+.secretaria-topbar {
+  max-width: 1360px;
+  margin-bottom: 24px;
+}
+
+.secretaria-topbar-brand {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.secretaria-topbar-badge {
+  display: inline-flex;
+  width: fit-content;
+  margin-bottom: 10px;
+  border: 1px solid rgba(47, 143, 122, 0.2);
+  border-radius: 999px;
+  padding: 6px 10px;
+  color: #176c60;
+  background: rgba(234, 246, 242, 0.9);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.secretaria-topbar h1 {
+  color: #07111f;
+  font-size: clamp(34px, 3.1vw, 48px);
+  line-height: 1.02;
+}
+
+.secretaria-topbar p {
+  display: block;
+  max-width: 680px;
+  margin: 10px 0 0;
+  color: #526173;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.secretaria-topbar-status {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid rgba(47, 143, 122, 0.2);
+  border-radius: 999px;
+  padding: 0 16px;
+  color: #176c60;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 14px 34px rgba(24, 33, 47, 0.06);
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.secretaria-workspace {
+  max-width: 1360px;
+  grid-template-columns: minmax(780px, 1fr) 340px;
+  gap: 28px;
+}
+
+.secretaria-card {
+  border-color: rgba(205, 222, 218, 0.92);
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 28px 70px rgba(24, 33, 47, 0.09);
+  backdrop-filter: blur(14px);
+}
+
+.secretaria-search-card {
+  position: relative;
+  min-height: 500px;
+  overflow: hidden;
+  padding: 34px;
+}
+
+.secretaria-search-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 7px;
+  background: linear-gradient(90deg, #2f8f7a 0%, #315f91 58%, #f97316 100%);
+}
+
+.secretaria-card-title {
+  align-items: center;
+  margin-bottom: 26px;
+}
+
+.secretaria-title-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  color: #176c60;
+  background: #eaf6f2;
+  box-shadow: none;
+}
+
+.secretaria-card-title h2 {
+  color: #07111f;
+  font-size: 22px;
+}
+
+.secretaria-card-title p {
+  display: block;
+  margin-top: 4px;
+  color: #607287;
+  font-size: 14px;
+}
+
+.secretaria-form {
+  gap: 16px;
+}
+
+.secretaria-field label {
+  color: #26384d;
+  font-size: 14px;
+}
+
+.secretaria-form select,
+.secretaria-input-wrap {
+  height: 56px;
+  border: 1px solid #c9d8df;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.secretaria-input-wrap {
+  padding: 0 14px;
+}
+
+.secretaria-input-wrap svg {
+  color: #607287;
+}
+
+.secretaria-input-wrap input,
+.secretaria-form select {
+  color: #07111f;
+  font-size: 16px;
+}
+
+.secretaria-search-row {
+  grid-template-columns: minmax(0, 1fr) 144px auto;
+  gap: 14px;
+}
+
+.secretaria-primary-button,
+.secretaria-new-summer-student {
+  min-height: 56px;
+  border-radius: 16px;
+}
+
+.secretaria-primary-button {
+  background: #315f91;
+  box-shadow: 0 16px 28px rgba(49, 95, 145, 0.18);
+}
+
+.secretaria-new-summer-student {
+  padding-inline: 18px;
+  white-space: nowrap;
+}
+
+.secretaria-search-empty {
+  min-height: 172px;
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  align-items: center;
+  gap: 18px;
+  margin-top: 28px;
+  border: 1px dashed #c9d8df;
+  border-radius: 22px;
+  padding: 24px;
+  color: #526173;
+  background: linear-gradient(135deg, rgba(234, 246, 242, 0.84), rgba(255, 255, 255, 0.86));
+}
+
+.secretaria-search-empty-icon {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border-radius: 20px;
+  color: #315f91;
+  background: #edf4ff;
+}
+
+.secretaria-search-empty strong {
+  display: block;
+  margin-bottom: 5px;
+  color: #07111f;
+  font-size: 18px;
+}
+
+.secretaria-search-empty span {
+  display: block;
+  max-width: 520px;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.secretaria-process-card {
+  padding: 24px;
+  border-radius: 26px;
+}
+
+.secretaria-process-heading {
+  margin-bottom: 18px;
+}
+
+.secretaria-process-heading h2 {
+  color: #07111f;
+  font-size: 20px;
+}
+
+.secretaria-process-heading span {
+  color: #176c60;
+  background: #eaf6f2;
+}
+
+.secretaria-process-card .secretaria-process-item {
+  min-height: 54px;
+  border-color: #dbe7ec;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.secretaria-process-note {
+  margin-top: 16px;
+  color: #526173;
+  font-size: 14px;
+}
+
+@media (max-width: 1180px) {
+  .secretaria-topbar-brand {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .secretaria-workspace {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .secretaria-main {
+    padding: 24px 16px 36px;
+  }
+
+  .secretaria-search-card {
+    min-height: auto;
+    padding: 26px 20px;
+  }
+
+  .secretaria-search-row {
+    grid-template-columns: 1fr;
+  }
+
+  .secretaria-search-empty {
+    grid-template-columns: 1fr;
+  }
+}
+
+.secretaria-name-results {
+  gap: 10px;
+  margin: 14px 0 12px;
+}
+
+.secretaria-name-results button {
+  padding: 13px 14px;
+  border-radius: 14px;
+}
+
+.secretaria-registration-minor {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid #dbe7ec;
+  border-radius: 16px;
+  background: #f8fbfd;
+}
+
+.secretaria-registration-minor .secretaria-registration-section-head {
+  grid-column: 1 / -1;
+}
+
+.secretaria-registration-modal {
+  width: min(1080px, calc(100vw - 44px));
+  background: #ffffff;
+}
+
+.secretaria-registration-modal .secretaria-registration-form {
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 12px 14px;
+}
+
+.secretaria-registration-modal .secretaria-registration-section {
+  color: #18212f;
+}
+
+.secretaria-registration-modal .secretaria-field input,
+.secretaria-registration-modal .secretaria-field select,
+.secretaria-registration-modal .secretaria-field textarea {
+  background: #ffffff;
+  border-color: #d6e0e6;
+}
+
+.secretaria-registration-modal .secretaria-field input:focus,
+.secretaria-registration-modal .secretaria-field select:focus,
+.secretaria-registration-modal .secretaria-field textarea:focus {
+  border-color: #2f8f7a;
+  box-shadow: 0 0 0 3px rgba(47, 143, 122, 0.12);
+}
+
+.secretaria-registration-modal .secretaria-field {
+  grid-column: span 6;
+}
+
+.secretaria-registration-modal .secretaria-field-short {
+  grid-column: span 2;
+}
+
+.secretaria-registration-modal .secretaria-field-medium {
+  grid-column: span 3;
+}
+
+.secretaria-registration-modal .secretaria-field-wide {
+  grid-column: span 8;
+}
+
+.secretaria-registration-modal .secretaria-age-field input {
+  max-width: 88px;
+}
+
+.secretaria-registration-minor {
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.secretaria-registration-minor .secretaria-registration-section-head {
+  grid-column: 1 / -1;
+}
+
+.secretaria-message {
+  margin-top: 12px;
+  border-radius: 14px;
+}
+
+.secretaria-sidebar {
+  color: #ffffff;
+}
+
+.secretaria-brand {
+  min-height: 102px;
+}
+
+.secretaria-brand-logo-frame {
+  width: 86px;
+  height: 86px;
+  padding: 5px;
+  border-radius: 22px;
+  background: #ffffff;
+}
+
+.secretaria-brand-logo-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: scale(1.22);
+  transform-origin: center;
+}
+
+.secretaria-module-label,
+.secretaria-nav-item,
+.secretaria-logout,
+.secretaria-nav-item span,
+.secretaria-logout span {
+  color: #ffffff;
+}
+
+.secretaria-module-label {
+  font-weight: 900;
+  opacity: 1;
+}
+
+.secretaria-nav-item svg,
+.secretaria-logout svg {
+  color: #ffffff;
+  stroke: #ffffff;
+}
+
+.secretaria-nav-item:not(.secretaria-nav-item-active),
+.secretaria-logout {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.secretaria-student-panel,
+.secretaria-student-panel strong,
+.secretaria-student-panel span,
+.secretaria-student-panel dt,
+.secretaria-student-panel dd,
+.secretaria-student-panel p,
+.secretaria-overline,
+.secretaria-pill,
+.secretaria-pill-success,
+.secretaria-pill-info,
+.secretaria-pill-warning,
+.secretaria-info-box {
+  color: #000000 !important;
+}
+
+.secretaria-student-panel strong,
+.secretaria-student-panel dd,
+.secretaria-overline,
+.secretaria-student-data dt,
+.secretaria-pill {
+  font-weight: 900;
+}
+
+.secretaria-student-summary span:last-child,
+.secretaria-info-box,
+.secretaria-info-box span,
+.secretaria-info-box p,
+.secretaria-student-panel p {
+  font-weight: 400 !important;
+}
+
+.secretaria-student-data dt {
+  color: #000000 !important;
+  opacity: 1;
+}
+
+.secretaria-student-data dd {
+  color: #000000 !important;
+  font-weight: 500;
+}
+
+@media (max-width: 760px) {
+  .secretaria-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .secretaria-sidebar {
+    position: static;
+    height: auto;
+    overflow: visible;
+  }
+
+  .secretaria-brand {
+    justify-content: flex-start;
+  }
+
+  .secretaria-main {
+    padding: 22px 16px;
+  }
+
+  .secretaria-search-card {
+    min-height: auto;
+  }
+
+  .secretaria-student-summary {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .secretaria-new-search-button {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .secretaria-topbar h1 {
+    font-size: 25px;
+  }
+
+  .secretaria-search-row {
+    grid-template-columns: 1fr;
+  }
+
+  .secretaria-registration-minor {
+    grid-template-columns: 1fr;
+  }
+
+  .secretaria-registration-modal {
+    width: calc(100vw - 24px);
+  }
+
+  .secretaria-registration-modal .secretaria-registration-form,
+  .secretaria-registration-minor {
+    grid-template-columns: 1fr;
+  }
+
+  .secretaria-registration-modal .secretaria-field,
+  .secretaria-registration-modal .secretaria-field-short,
+  .secretaria-registration-modal .secretaria-field-medium,
+  .secretaria-registration-modal .secretaria-field-wide {
+    grid-column: 1 / -1;
+  }
+
+  .secretaria-registration-modal .secretaria-age-field input {
+    max-width: 100%;
+  }
+
+  .secretaria-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .secretaria-student-data {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .secretaria-student-data .secretaria-data-program,
+  .secretaria-student-data .secretaria-data-contact {
+    grid-column: span 2;
+  }
+
+  .secretaria-process-card {
+    position: static;
+  }
+}
+
+/* Final responsive containment: this must stay after the visual refresh layers. */
+.secretaria-layout,
+.secretaria-main,
+.secretaria-topbar,
+.secretaria-workspace,
+.secretaria-card,
+.secretaria-form,
+.secretaria-search-row,
+.secretaria-process-card {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.secretaria-layout {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.secretaria-main {
+  overflow-x: hidden;
+  padding-inline: clamp(18px, 3vw, 40px);
+}
+
+.secretaria-topbar,
+.secretaria-workspace {
+  width: 100%;
+}
+
+.secretaria-topbar h1 {
+  font-size: clamp(28px, 3vw, 40px);
+  overflow-wrap: anywhere;
+}
+
+.secretaria-topbar-brand {
+  min-width: 0;
+}
+
+.secretaria-topbar-status {
+  flex: 0 1 auto;
+}
+
+.secretaria-workspace {
+  grid-template-columns: minmax(0, 1fr) minmax(236px, 300px);
+  gap: clamp(14px, 2vw, 22px);
+}
+
+.secretaria-search-card {
+  min-height: clamp(330px, 42vh, 460px);
+  padding: clamp(22px, 3vw, 30px);
+}
+
+.secretaria-process-card {
+  padding: clamp(16px, 2vw, 22px);
+}
+
+@media (max-width: 1280px) {
+  .secretaria-workspace {
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 270px);
+  }
+}
+
+@media (max-width: 1100px) {
+  .secretaria-topbar-brand {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .secretaria-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .secretaria-process-card {
+    position: static;
+  }
+}
+
+@media (max-width: 760px) {
+  .secretaria-main {
+    padding-inline: 16px;
+  }
+
+  .secretaria-topbar h1 {
+    font-size: 25px;
+  }
+
+  .secretaria-topbar-status,
+  .secretaria-primary-button,
+  .secretaria-secondary-button,
+  .secretaria-register-button {
+    width: 100%;
+  }
+}
+
+/* Operational Secretaria view: keep the first screen focused on the workflow. */
+.secretaria-main {
+  padding-top: clamp(22px, 3vw, 32px);
+}
+
+.secretaria-topbar {
+  display: none;
+}
+
+.secretaria-workspace {
+  max-width: none;
+  margin: 0;
+  grid-template-columns: minmax(0, 1fr) minmax(236px, 280px);
+}
+
+.secretaria-search-card {
+  min-height: clamp(300px, 38vh, 420px);
+}
+
+.secretaria-process-card {
+  top: 22px;
+}
+
+.secretaria-process-note {
+  display: none;
+}
+
+@media (max-width: 1100px) {
+  .secretaria-workspace {
+    grid-template-columns: 1fr;
+  }
+}

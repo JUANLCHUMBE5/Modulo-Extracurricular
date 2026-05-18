@@ -1,0 +1,368 @@
+﻿@media (max-width: 1180px) {
+  .secretaria-main {
+    padding: 32px 28px;
+  }
+
+  .secretaria-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .secretaria-process-card {
+    position: static;
+  }
+}
+
+/* Final responsive containment: this must stay after the visual refresh layers. */
+.secretaria-layout,
+.secretaria-main,
+.secretaria-topbar,
+.secretaria-workspace,
+.secretaria-card,
+.secretaria-form,
+.secretaria-search-row,
+.secretaria-process-card {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.secretaria-layout {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.secretaria-main {
+  overflow-x: hidden;
+  padding-inline: clamp(18px, 3vw, 40px);
+}
+
+.secretaria-topbar,
+.secretaria-workspace {
+  width: 100%;
+}
+
+.secretaria-topbar h1 {
+  font-size: clamp(28px, 3vw, 40px);
+  overflow-wrap: anywhere;
+}
+
+.secretaria-topbar-brand {
+  min-width: 0;
+}
+
+.secretaria-topbar-status {
+  flex: 0 1 auto;
+}
+
+.secretaria-workspace {
+  grid-template-columns: minmax(0, 1fr) minmax(236px, 300px);
+  gap: clamp(14px, 2vw, 22px);
+}
+
+.secretaria-search-card {
+  min-height: clamp(330px, 42vh, 460px);
+  padding: clamp(22px, 3vw, 30px);
+}
+
+.secretaria-process-card {
+  padding: clamp(16px, 2vw, 22px);
+}
+
+@media (max-width: 1280px) {
+  .secretaria-workspace {
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 270px);
+  }
+}
+
+@media (max-width: 1100px) {
+  .secretaria-topbar-brand {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .secretaria-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .secretaria-process-card {
+    position: static;
+  }
+}
+
+@media (max-width: 760px) {
+  .secretaria-main {
+    padding-inline: 16px;
+  }
+
+  .secretaria-topbar h1 {
+    font-size: 25px;
+  }
+
+  .secretaria-topbar-status,
+  .secretaria-primary-button,
+  .secretaria-secondary-button,
+  .secretaria-register-button {
+    width: 100%;
+  }
+}
+
+/* Final fixed navigation override: keep the left panel still while content scrolls. */
+.secretaria-layout {
+  --secretaria-sidebar-width: 238px;
+  grid-template-columns: var(--secretaria-sidebar-width) minmax(0, 1fr);
+}
+
+.secretaria-sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 20;
+  width: var(--secretaria-sidebar-width);
+  min-height: 100dvh;
+  height: 100dvh;
+  overflow-y: auto;
+}
+
+.secretaria-main {
+  grid-column: 2;
+  width: 100%;
+}
+
+@media (max-width: 760px) {
+  .secretaria-layout {
+    --secretaria-sidebar-width: 100%;
+    grid-template-columns: 1fr;
+  }
+
+  .secretaria-sidebar {
+    position: static;
+    width: 100%;
+    min-height: auto;
+    height: auto;
+    overflow: visible;
+  }
+
+  .secretaria-main {
+    grid-column: 1;
+  }
+}
+
+/* Fixed module navigation: only the content area scrolls on desktop. */
+.secretaria-layout {
+  --secretaria-sidebar-width: 238px;
+  grid-template-columns: var(--secretaria-sidebar-width) minmax(0, 1fr);
+}
+
+.secretaria-sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 20;
+  width: var(--secretaria-sidebar-width);
+  min-height: 100dvh;
+  height: 100dvh;
+  overflow-y: auto;
+}
+
+.secretaria-main {
+  grid-column: 2;
+  width: 100%;
+}
+
+@media (max-width: 760px) {
+  .secretaria-layout {
+    --secretaria-sidebar-width: 100%;
+    grid-template-columns: 1fr;
+  }
+
+  .secretaria-sidebar {
+    position: static;
+    width: 100%;
+    min-height: auto;
+    height: auto;
+    overflow: visible;
+  }
+
+  .secretaria-main {
+    grid-column: 1;
+  }
+}
+
+/* Final responsive containment: this must stay after the visual refresh layers. */
+.secretaria-layout,
+.secretaria-main,
+.secretaria-topbar,
+.secretaria-workspace,
+.secretaria-card,
+.secretaria-form,
+.secretaria-search-row,
+.secretaria-process-card {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.secretaria-layout {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.secretaria-main {
+  overflow-x: hidden;
+  padding-inline: clamp(18px, 3vw, 40px);
+}
+
+.secretaria-topbar,
+.secretaria-workspace {
+  width: 100%;
+}
+
+.secretaria-topbar h1 {
+  font-size: clamp(28px, 3vw, 40px);
+  overflow-wrap: anywhere;
+}
+
+.secretaria-topbar-brand {
+  min-width: 0;
+}
+
+.secretaria-topbar-status {
+  flex: 0 1 auto;
+}
+
+.secretaria-workspace {
+  grid-template-columns: minmax(0, 1fr) minmax(236px, 300px);
+  gap: clamp(14px, 2vw, 22px);
+}
+
+.secretaria-search-card {
+  min-height: clamp(330px, 42vh, 460px);
+  padding: clamp(22px, 3vw, 30px);
+}
+
+.secretaria-process-card {
+  padding: clamp(16px, 2vw, 22px);
+}
+
+@media (max-width: 1280px) {
+  .secretaria-workspace {
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 270px);
+  }
+}
+
+@media (max-width: 1100px) {
+  .secretaria-topbar-brand {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .secretaria-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .secretaria-process-card {
+    position: static;
+  }
+}
+
+@media (max-width: 760px) {
+  .secretaria-main {
+    padding-inline: 16px;
+  }
+
+  .secretaria-topbar h1 {
+    font-size: 25px;
+  }
+
+  .secretaria-topbar-status,
+  .secretaria-primary-button,
+  .secretaria-secondary-button,
+  .secretaria-register-button {
+    width: 100%;
+  }
+}
+
+/* Responsive containment: avoid page-level horizontal scroll on medium screens. */
+.secretaria-layout,
+.secretaria-main,
+.secretaria-topbar,
+.secretaria-workspace,
+.secretaria-card,
+.secretaria-form,
+.secretaria-search-row,
+.secretaria-process-card {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.secretaria-main {
+  overflow-x: hidden;
+  padding-inline: clamp(18px, 3vw, 40px);
+}
+
+.secretaria-topbar,
+.secretaria-workspace {
+  width: 100%;
+}
+
+.secretaria-topbar h1 {
+  font-size: clamp(28px, 3vw, 40px);
+  overflow-wrap: anywhere;
+}
+
+.secretaria-topbar-brand {
+  min-width: 0;
+}
+
+.secretaria-topbar-status {
+  flex: 0 1 auto;
+}
+
+.secretaria-workspace {
+  grid-template-columns: minmax(0, 1fr) minmax(236px, 300px);
+  gap: clamp(14px, 2vw, 22px);
+}
+
+.secretaria-search-card {
+  min-height: clamp(330px, 42vh, 460px);
+  padding: clamp(22px, 3vw, 30px);
+}
+
+.secretaria-process-card {
+  padding: clamp(16px, 2vw, 22px);
+}
+
+@media (max-width: 1280px) {
+  .secretaria-workspace {
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 270px);
+  }
+}
+
+@media (max-width: 1100px) {
+  .secretaria-topbar-brand {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .secretaria-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .secretaria-process-card {
+    position: static;
+  }
+}
+
+@media (max-width: 760px) {
+  .secretaria-main {
+    padding-inline: 16px;
+  }
+
+  .secretaria-topbar h1 {
+    font-size: 25px;
+  }
+
+  .secretaria-topbar-status,
+  .secretaria-primary-button,
+  .secretaria-secondary-button,
+  .secretaria-register-button {
+    width: 100%;
+  }
+}
+

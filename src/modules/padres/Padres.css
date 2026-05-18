@@ -3149,3 +3149,62 @@
     max-height: 145px;
   }
 }
+
+/* Module-wide responsive guardrails */
+.padres-layout,
+.padres-main,
+.padres-header,
+.padres-enrollment,
+.padres-hero,
+.padres-hero-with-banner,
+.padres-program-panel,
+.padres-student-panel,
+.padres-payment-panel {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.padres-layout,
+.padres-main {
+  overflow-x: hidden;
+}
+
+.padres-main {
+  width: min(1180px, 100%);
+  padding-inline: clamp(14px, 3vw, 28px);
+}
+
+.padres-header {
+  flex-wrap: wrap;
+}
+
+.padres-enrollment,
+.padres-hero,
+.padres-hero-with-banner {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr);
+}
+
+.padres-hero-art img {
+  max-width: 100%;
+}
+
+@media (max-width: 980px) {
+  .padres-enrollment,
+  .padres-hero,
+  .padres-hero-with-banner {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .padres-header-actions,
+  .padres-ghost-button,
+  .padres-logout-top,
+  .padres-primary-button,
+  .padres-outline-button,
+  .padres-blue-button,
+  .padres-green-button,
+  .padres-disabled-button {
+    width: 100%;
+  }
+}

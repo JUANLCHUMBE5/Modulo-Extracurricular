@@ -117,6 +117,11 @@ export async function registrarInscripcion(payload) {
   await syncApiDb();
   finalizarProgramasVencidos();
 
+  const periodoPayload = normalizarPeriodo(payload.periodo);
+  if (payload.esExterno && periodoPayload !== "verano") {
+    throw new Error("El alumno externo solo puede registrarse en ciclo verano.");
+  }
+
   const programa = apiDb.programas.find((item) => item.id === payload.programaId);
   if (!programa) throw new Error("El programa ya no existe. Coordinación debe revisarlo.");
   if (programa.estado !== "Habilitado") {
@@ -165,10 +170,35 @@ export async function registrarInscripcion(payload) {
   apiDb.inscripciones.push(registro);
   programa.cuposOcupados = Number(programa.cuposOcupados || 0) + 1;
 
+  if (payload.esNuevoVerano) {
+    apiDb.estudiantes[payload.dniEstudiante] = {
+      ...(apiDb.estudiantes[payload.dniEstudiante] || {}),
+      dni: payload.dniEstudiante,
+      codigoEstudiante: payload.codigoEstudiante || `EXT-${payload.dniEstudiante}`,
+      nombres: payload.nombresEstudiante,
+      edad: payload.edadEstudiante || "",
+      domicilio: payload.domicilioEstudiante || "",
+      sexo: payload.sexoEstudiante || payload.sexo || "",
+      grado: payload.gradoEstudiante || "",
+      seccion: payload.seccionEstudiante || "",
+      tipoAlumno: payload.tipoAlumno || "Alumno externo",
+      fechaNacimiento: payload.fechaNacimiento || "",
+      estadoInscripcion: registro.estadoInscripcion,
+      apoderado: payload.apoderado,
+      telefonoApoderado: payload.telefono,
+      correoApoderado: payload.correo || "",
+      medioEnvio: payload.medioEnvio || "WhatsApp",
+      colegioProcedencia: payload.colegioProcedencia || "",
+      periodo: "Ciclo verano",
+      origenRegistro: "Secretaria - alumno externo verano",
+    };
+  }
+
   const estudiante = apiDb.estudiantes[payload.dniEstudiante];
   if (estudiante) {
     estudiante.apoderado = payload.apoderado;
     estudiante.telefonoApoderado = payload.telefono;
+    estudiante.estadoInscripcion = registro.estadoInscripcion;
   }
 
   await saveApiDb();

@@ -1,5 +1,9 @@
 import { useState } from "react";
-import { BookOpen, FileText, X } from "lucide-react";
+import {
+  IconBook as BookOpen,
+  IconFileText as FileText,
+  IconX as X,
+} from "@tabler/icons-react";
 
 function TemplateUploadField({
   plantillaInputKey,

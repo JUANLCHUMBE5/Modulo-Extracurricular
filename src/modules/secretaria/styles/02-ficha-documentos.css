@@ -1,0 +1,371 @@
+﻿.secretaria-ficha-modal {
+  width: min(1040px, 100%);
+  max-height: min(92vh, 840px);
+  margin: 0;
+  overflow: auto;
+  padding: 16px;
+  animation: secretariaModalIn 160ms ease both;
+}
+
+.secretaria-ficha-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.secretaria-ficha-top h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.secretaria-ficha-paper {
+  border: 1px solid var(--secretaria-line);
+  border-radius: 8px;
+  padding: 28px 44px;
+  background: #ffffff;
+}
+
+.secretaria-pdf-paper {
+  min-height: min(70vh, 760px);
+  padding: 0;
+  overflow: auto;
+}
+
+.secretaria-word-ready {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--secretaria-line);
+  background: #f4fbf8;
+  color: #0f5138;
+}
+
+.secretaria-word-ready div {
+  display: grid;
+  gap: 2px;
+}
+
+.secretaria-word-ready strong {
+  font-size: 13px;
+}
+
+.secretaria-word-ready span {
+  color: #356154;
+  font-size: 12px;
+}
+
+.secretaria-pdf-viewer {
+  display: block;
+  width: 100%;
+  height: min(66vh, 720px);
+  border: 0;
+  background: #ffffff;
+}
+
+.secretaria-word-loading,
+.secretaria-word-error {
+  margin: 12px 14px;
+}
+
+.secretaria-word-error {
+  color: #b42318;
+  font-weight: 700;
+}
+
+.secretaria-word-document {
+  min-height: min(66vh, 720px);
+  padding: 16px;
+  background: #d9d9d9;
+  overflow: auto;
+}
+
+.secretaria-word-document .docx-wrapper {
+  padding: 0;
+  background: transparent;
+}
+
+.secretaria-word-document .docx {
+  margin: 0 auto 16px;
+  overflow: visible !important;
+  box-shadow: 0 1px 8px rgba(15, 23, 42, 0.22);
+}
+
+.secretaria-ficha-paper header {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #cbd5df;
+  text-align: center;
+}
+
+.secretaria-ficha-paper h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.secretaria-ficha-paper header strong,
+.secretaria-ficha-paper header span,
+.secretaria-ficha-paper p {
+  color: #253244;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.secretaria-ficha-paper h4 {
+  margin: 16px 0 8px;
+  font-size: 13px;
+}
+
+.secretaria-invitation-text {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.secretaria-invitation-text p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.secretaria-word-preview {
+  display: grid;
+  gap: 7px;
+  color: #111827;
+}
+
+.secretaria-word-paragraph {
+  margin: 0;
+  color: #111827;
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.secretaria-word-paragraph.is-center {
+  text-align: center;
+}
+
+.secretaria-word-paragraph.is-right {
+  text-align: right;
+}
+
+.secretaria-word-paragraph.is-justify {
+  text-align: justify;
+}
+
+.secretaria-word-paragraph.is-bold {
+  font-weight: 800;
+}
+
+.secretaria-word-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  margin: 8px 0;
+}
+
+.secretaria-word-table td {
+  min-height: 28px;
+  border: 1px solid #1f2933;
+  padding: 5px 7px;
+  vertical-align: top;
+}
+
+.secretaria-word-table .secretaria-word-paragraph {
+  margin: 0;
+}
+
+.secretaria-ficha-block p {
+  margin: 4px 0;
+}
+
+.secretaria-ficha-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+@keyframes secretariaResult {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes secretariaSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes secretariaModalFade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes secretariaModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 1040px) {
+  .secretaria-workspace {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .secretaria-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .secretaria-sidebar {
+    min-height: auto;
+  }
+
+  .secretaria-sidebar-footer {
+    margin-top: 20px;
+  }
+
+  .secretaria-main {
+    padding: 18px;
+  }
+
+  .secretaria-topbar h1 {
+    font-size: 18px;
+    line-height: 1.25;
+  }
+
+  .secretaria-search-row,
+  .secretaria-student-data,
+  .secretaria-registration-form,
+  .secretaria-modal-student,
+  .secretaria-registration-section,
+  .secretaria-schedule-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .secretaria-modal-overlay {
+    align-items: start;
+    padding: 14px;
+  }
+
+  .secretaria-registration-modal {
+    max-height: calc(100vh - 28px);
+  }
+
+  .secretaria-confirmation-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .secretaria-ficha-paper {
+    padding: 18px;
+  }
+
+  .secretaria-primary-button,
+  .secretaria-register-button,
+  .secretaria-secondary-button {
+    width: 100%;
+  }
+
+  .secretaria-ficha-actions,
+  .secretaria-modal-actions {
+    flex-direction: column;
+  }
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 18mm;
+  }
+
+  body.secretaria-printing-ficha {
+    background: #ffffff;
+  }
+
+  body.secretaria-printing-ficha * {
+    visibility: hidden;
+  }
+
+  body.secretaria-printing-ficha .secretaria-ficha-paper,
+  body.secretaria-printing-ficha .secretaria-ficha-paper * {
+    visibility: visible;
+  }
+
+  body.secretaria-printing-ficha .secretaria-modal-overlay {
+    position: static;
+    inset: auto;
+    display: block;
+    padding: 0;
+    background: #ffffff;
+  }
+
+  body.secretaria-printing-ficha .secretaria-ficha-modal {
+    width: 100%;
+    max-height: none;
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+    overflow: visible;
+  }
+
+  body.secretaria-printing-ficha .secretaria-ficha-top,
+  body.secretaria-printing-ficha .secretaria-ficha-actions {
+    display: none;
+  }
+
+  body.secretaria-printing-ficha .secretaria-ficha-paper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+  }
+
+  body.secretaria-printing-ficha .secretaria-word-ready,
+  body.secretaria-printing-ficha .secretaria-word-loading,
+  body.secretaria-printing-ficha .secretaria-word-error {
+    display: none;
+  }
+
+  body.secretaria-printing-ficha .secretaria-word-document {
+    min-height: auto;
+    padding: 0;
+    background: #ffffff;
+    overflow: visible;
+  }
+
+  body.secretaria-printing-ficha .secretaria-word-document .docx {
+    margin: 0;
+    box-shadow: none;
+  }
+}
+

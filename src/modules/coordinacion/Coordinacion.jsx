@@ -2,11 +2,29 @@
 import JSZip from "jszip";
 import { Alert as MantineAlert, Table, Badge, Group, ActionIcon, Tooltip } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
+import { jsPDF } from "jspdf";
 import {
-  BookOpen, ChevronRight, LogOut, Plus, Search, Users,
-  CheckCircle2, AlertCircle, Loader2, CalendarDays, DollarSign,
-  Edit3, X, Eye, Upload, ToggleLeft, ToggleRight, Trash2, FileText
-} from "lucide-react";
+  IconAlertCircle as AlertCircle,
+  IconBook as BookOpen,
+  IconCalendar as CalendarDays,
+  IconChevronRight as ChevronRight,
+  IconCircleCheck as CheckCircle2,
+  IconCurrencyDollar as DollarSign,
+  IconEdit as Edit3,
+  IconEye as Eye,
+  IconFileDownload as FileDown,
+  IconFileText as FileText,
+  IconLoader2 as Loader2,
+  IconLogout as LogOut,
+  IconPlus as Plus,
+  IconSearch as Search,
+  IconToggleLeft as ToggleLeft,
+  IconToggleRight as ToggleRight,
+  IconTrash as Trash2,
+  IconUpload as Upload,
+  IconUsers as Users,
+  IconX as X,
+} from "@tabler/icons-react";
 import {
   listarProgramas, crearPrograma, crearProgramaDesdeDocumento, editarPrograma, cambiarEstadoPrograma,
   eliminarPrograma,
@@ -298,6 +316,17 @@ function Coordinacion({ user, onLogout }) {
     const lista = await listarInvitados(prog.id);
     setInvitados(lista);
     setShowInvitados(true);
+  }
+
+  function descargarPdfInvitados() {
+    if (!progSeleccionado) return;
+    if (!invitados.length) {
+      mostrarMsg("No hay alumnos registrados para descargar.");
+      return;
+    }
+
+    descargarListaAlumnosPdf(progSeleccionado, invitados);
+    mostrarMsg("Lista de alumnos descargada en PDF.", "success");
   }
 
   function abrirDocumentosPrograma(prog) {
@@ -897,19 +926,17 @@ function Coordinacion({ user, onLogout }) {
                   <div className="coord-table-responsive">
                     <Table striped highlightOnHover>
                       <Table.Thead>
-                        <Table.Tr>
-                          <Table.Th>Programa / taller</Table.Th>
-                          <Table.Th>Periodo</Table.Th>
-                          <Table.Th>Categoría</Table.Th>
-                          <Table.Th>Grados</Table.Th>
-                          <Table.Th>Días y horario</Table.Th>
-                          <Table.Th>Vigencia</Table.Th>
-                          <Table.Th>Cupos</Table.Th>
-                          <Table.Th>Costo</Table.Th>
-                          <Table.Th>Cobro</Table.Th>
-                          <Table.Th>Estado</Table.Th>
-                          <Table.Th>Acciones</Table.Th>
-                        </Table.Tr>
+                          <Table.Tr>
+                            <Table.Th>Programa / taller</Table.Th>
+                            <Table.Th>Categoría</Table.Th>
+                            <Table.Th>Grados</Table.Th>
+                            <Table.Th>Días y horario</Table.Th>
+                            <Table.Th>Vigencia</Table.Th>
+                            <Table.Th>Cupos</Table.Th>
+                            <Table.Th>Costo</Table.Th>
+                            <Table.Th>Estado</Table.Th>
+                            <Table.Th>Acciones</Table.Th>
+                          </Table.Tr>
                       </Table.Thead>
                       <Table.Tbody>
                         {programasFiltrados.map(prog => (
@@ -917,24 +944,22 @@ function Coordinacion({ user, onLogout }) {
                             key={prog.id}
                             className={`coord-program-row coord-program-row-${String(prog.estado || "").toLowerCase()}`}
                           >
-                            <Table.Td>
+                            <Table.Td data-label="Programa / taller">
                               <div className="coord-program-name">{prog.nombre}</div>
                               <span className="coord-program-subline">{prog.id || "Sin código"}</span>
                               <span className="coord-program-tutor">Tutor: {prog.responsable || "No asignado"}</span>
                             </Table.Td>
-                            <Table.Td>{normalizarPeriodoVista(prog.periodo) === "escolar" ? "Año escolar" : "Ciclo verano"}</Table.Td>
-                            <Table.Td>{prog.categoria}</Table.Td>
-                            <Table.Td><GradosTabla programa={prog} /></Table.Td>
-                            <Table.Td>
+                            <Table.Td data-label="Categoría">{prog.categoria}</Table.Td>
+                            <Table.Td data-label="Grados"><GradosTabla programa={prog} /></Table.Td>
+                            <Table.Td data-label="Días y horario">
                               <HorarioTabla programa={prog} />
                             </Table.Td>
-                            <Table.Td><VigenciaTabla inicio={prog.fechaInicio} fin={prog.fechaFin} /></Table.Td>
-                            <Table.Td>
+                            <Table.Td data-label="Vigencia"><VigenciaTabla inicio={prog.fechaInicio} fin={prog.fechaFin} /></Table.Td>
+                            <Table.Td data-label="Cupos">
                               <CuposTabla programa={prog} />
                             </Table.Td>
-                            <Table.Td>{formatearSoles(prog.costo)}</Table.Td>
-                            <Table.Td>{prog.modalidadCobro || "No definido"}</Table.Td>
-                            <Table.Td>
+                            <Table.Td data-label="Costo">{formatearSoles(prog.costo)}</Table.Td>
+                            <Table.Td data-label="Estado">
                               <Badge
                                 color={prog.estado === "Habilitado" ? "blue" : prog.estado === "Deshabilitado" ? "gray" : "yellow"}
                                 variant="light"
@@ -943,7 +968,7 @@ function Coordinacion({ user, onLogout }) {
                                 {prog.estado}
                               </Badge>
                             </Table.Td>
-                            <Table.Td>
+                            <Table.Td data-label="Acciones">
                               <Group gap={4}>
                                 <Tooltip label="Editar">
                                   <ActionIcon size="xs" color="blue" variant="light" onClick={() => abrirEditar(prog)}>
@@ -1527,7 +1552,15 @@ function Coordinacion({ user, onLogout }) {
               </div>
               <div className="coord-modal-body">
                 <div className="coord-invitados-actions">
-                  <button className="coord-primary-button"><Upload size={15} /> Importar Excel</button>
+                  <button
+                    className="coord-primary-button"
+                    type="button"
+                    onClick={descargarPdfInvitados}
+                    disabled={!invitados.length}
+                  >
+                    <FileDown size={15} />
+                    <span>Descargar PDF</span>
+                  </button>
                 </div>
                 {invitados.length === 0 ? (
                   <p className="coord-process-note">No hay invitados registrados para este programa.</p>
@@ -2001,6 +2034,130 @@ function esCostoValido(valor) {
 
 function formatearSoles(valor) {
   return `S/ ${Number(valor || 0).toFixed(2)}`;
+}
+
+function descargarListaAlumnosPdf(programa, alumnos) {
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const margen = 14;
+  const anchoPagina = doc.internal.pageSize.getWidth();
+  const altoPagina = doc.internal.pageSize.getHeight();
+  const fecha = formatearFechaPdf(fechaActualIso());
+  let y = 16;
+
+  doc.setTextColor(7, 17, 31);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(15);
+  doc.text("Lista de alumnos registrados", anchoPagina / 2, y, { align: "center" });
+  y += 7;
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.setTextColor(82, 97, 115);
+  doc.text(`Generado: ${fecha}`, anchoPagina / 2, y, { align: "center" });
+  y += 10;
+
+  const datosPrograma = [
+    ["Programa", programa?.nombre || "Sin nombre"],
+    ["Codigo", programa?.id || "Sin codigo"],
+    ["Categoria", programa?.categoria || "No definida"],
+    ["Responsable", programa?.responsable || "No asignado"],
+    ["Horario", programa?.horario || "Por definir"],
+    ["Vigencia", `${formatearFechaPdf(programa?.fechaInicio)} al ${formatearFechaPdf(programa?.fechaFin)}`],
+    ["Cupos", `${programa?.cuposOcupados || alumnos.length}/${programa?.cupos || alumnos.length}`],
+  ];
+
+  doc.setDrawColor(216, 229, 226);
+  doc.setFillColor(248, 252, 251);
+  doc.roundedRect(margen, y, anchoPagina - margen * 2, 39, 3, 3, "FD");
+  y += 6;
+
+  datosPrograma.forEach(([label, value], index) => {
+    const columna = index % 2;
+    const fila = Math.floor(index / 2);
+    const x = margen + 5 + columna * 91;
+    const yy = y + fila * 8;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7.5);
+    doc.setTextColor(82, 97, 115);
+    doc.text(label.toUpperCase(), x, yy);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    doc.setTextColor(7, 17, 31);
+    doc.text(doc.splitTextToSize(String(value || "-"), columna === 0 ? 76 : 70), x, yy + 3.8);
+  });
+
+  y += 45;
+  y = dibujarEncabezadoTablaPdf(doc, margen, y);
+
+  alumnos.forEach((alumno, index) => {
+    if (y > altoPagina - 18) {
+      doc.addPage();
+      y = 16;
+      y = dibujarEncabezadoTablaPdf(doc, margen, y);
+    }
+
+    const nombre = String(alumno.nombres || alumno.nombre || "").trim() || "-";
+    const fila = [
+      String(index + 1),
+      alumno.dni || "Sin DNI",
+      alumno.codigoEstudiante || "-",
+      nombre,
+      alumno.grado || "-",
+      alumno.seccion || "-",
+    ];
+
+    const altoFila = Math.max(8, doc.splitTextToSize(nombre, 67).length * 4.2 + 4);
+    doc.setDrawColor(237, 242, 245);
+    doc.line(margen, y - 2, anchoPagina - margen, y - 2);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    doc.setTextColor(24, 33, 47);
+    doc.text(fila[0], margen + 1, y + 3);
+    doc.text(fila[1], margen + 10, y + 3);
+    doc.text(fila[2], margen + 35, y + 3);
+    doc.text(doc.splitTextToSize(fila[3], 67), margen + 62, y + 3);
+    doc.text(fila[4], margen + 134, y + 3);
+    doc.text(fila[5], margen + 161, y + 3);
+    y += altoFila;
+  });
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(82, 97, 115);
+  doc.text(`Total de alumnos: ${alumnos.length}`, margen, altoPagina - 10);
+  doc.save(`lista-alumnos-${normalizarNombreArchivoPdf(programa?.nombre || programa?.id || "programa")}-${fechaActualIso()}.pdf`);
+}
+
+function dibujarEncabezadoTablaPdf(doc, margen, y) {
+  doc.setFillColor(234, 246, 242);
+  doc.setDrawColor(216, 229, 226);
+  doc.roundedRect(margen, y, 182, 8, 2, 2, "FD");
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(7.5);
+  doc.setTextColor(39, 124, 105);
+  doc.text("#", margen + 1, y + 5.3);
+  doc.text("DNI", margen + 10, y + 5.3);
+  doc.text("CODIGO", margen + 35, y + 5.3);
+  doc.text("ESTUDIANTE", margen + 62, y + 5.3);
+  doc.text("GRADO", margen + 134, y + 5.3);
+  doc.text("SECCION", margen + 161, y + 5.3);
+  return y + 12;
+}
+
+function formatearFechaPdf(valor) {
+  if (!valor) return "Sin fecha";
+  const partes = String(valor).split("-");
+  if (partes.length === 3) return `${partes[2]}/${partes[1]}/${partes[0]}`;
+  return String(valor);
+}
+
+function normalizarNombreArchivoPdf(valor) {
+  return String(valor || "archivo")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/gi, "-")
+    .replace(/^-+|-+$/g, "")
+    .toLowerCase() || "archivo";
 }
 
 function textoEstadoCarga(estado) {

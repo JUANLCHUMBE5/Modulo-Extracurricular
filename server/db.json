@@ -8,7 +8,7 @@
   ],
   "nextProgramaId": 8,
   "nextCargaId": 1,
-  "nextDocumentoId": 19,
+  "nextDocumentoId": 21,
   "estudiantes": {
     "11112222": {
       "dni": "11112222",
@@ -587,6 +587,28 @@
   ],
   "documentosGenerados": [
     {
+      "id": "DOC-020",
+      "alumno": "Valeria Camila Quispe Rojas",
+      "dniEstudiante": "70124589",
+      "programa": "CLUB DE TAREAS MATEMATICA",
+      "programaId": "PROG-007",
+      "fecha": "2026-05-18T10:30:10-05:00",
+      "usuario": "Secretaría",
+      "tipoDocumento": "Comunicado personalizado",
+      "plantilla": "CARTA_CLUB_DE_TAREAS_PLANTILLA_MISMO_FORMATO_V2.docx"
+    },
+    {
+      "id": "DOC-019",
+      "alumno": "Camila Torres Ruiz",
+      "dniEstudiante": "22223333",
+      "programa": "CLUB DE TAREAS MATEMATICA",
+      "programaId": "PROG-007",
+      "fecha": "2026-05-18T08:53:42-05:00",
+      "usuario": "Secretaría",
+      "tipoDocumento": "Comunicado personalizado",
+      "plantilla": "CARTA_CLUB_DE_TAREAS_PLANTILLA_MISMO_FORMATO_V2.docx"
+    },
+    {
       "id": "DOC-018",
       "alumno": "Camila Torres Ruiz",
       "dniEstudiante": "22223333",
@@ -695,28 +717,56 @@
       "nombre": "Admin Principal",
       "usuario": "admin",
       "rol": "Administrador",
-      "estado": "Activo"
+      "estado": "Activo",
+      "contrasena": "1234"
     },
     {
       "id": "2",
       "nombre": "Maria Secretaria",
       "usuario": "secretaria",
       "rol": "Secretaria",
-      "estado": "Activo"
+      "estado": "Activo",
+      "contrasena": "1234"
     },
     {
       "id": "3",
       "nombre": "Jose Caja",
       "usuario": "caja",
       "rol": "Caja",
-      "estado": "Activo"
+      "estado": "Activo",
+      "contrasena": "1234"
     },
     {
       "id": "4",
       "nombre": "Ana Coordinadora",
       "usuario": "coordinacion",
       "rol": "Coordinacion",
-      "estado": "Activo"
+      "estado": "Activo",
+      "contrasena": "1234"
+    },
+    {
+      "id": "5",
+      "nombre": "Auxiliar de Ingreso",
+      "usuario": "aux",
+      "rol": "Auxiliar",
+      "estado": "Activo",
+      "contrasena": "1234"
+    },
+    {
+      "id": "6",
+      "nombre": "Direccion General",
+      "usuario": "dir",
+      "rol": "Direccion",
+      "estado": "Activo",
+      "contrasena": "1234"
+    },
+    {
+      "id": "7",
+      "nombre": "Profesor Responsable",
+      "usuario": "profe",
+      "rol": "Coordinacion",
+      "estado": "Activo",
+      "contrasena": "1234"
     }
   ]
 }

@@ -1,4 +1,8 @@
-import { MessageCircle, Send, X } from "lucide-react";
+import {
+  IconMessageCircle as MessageCircle,
+  IconSend as Send,
+  IconX as X,
+} from "@tabler/icons-react";
 
 const accesos = ["Ver programa", "Monto a pagar", "Ver horario", "Descargar ficha", "Estado del pago", "Ver QR"];
 
