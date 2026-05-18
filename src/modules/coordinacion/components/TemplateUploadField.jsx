@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import {
   IconBook as BookOpen,
   IconFileText as FileText,
@@ -16,6 +16,7 @@ function TemplateUploadField({
   onUseExisting,
   modoDocumentos = false,
 }) {
+  const inputId = useId();
   const [programaPlantilla, setProgramaPlantilla] = useState("");
   const plantillasDisponibles = programas.filter((programa) =>
     programa.id !== form.id && programa.plantilla && programa.plantillaBase64 && programa.plantillaValidada
@@ -32,25 +33,37 @@ function TemplateUploadField({
       <div className="coord-template-compact-row">
         <div className="coord-template-file-control">
           <label>{modoDocumentos ? "Subir documento Word" : "Documento Word"}</label>
-          <input className="coord-template-file" key={plantillaInputKey} type="file" accept=".docx" onChange={onSelect} />
-        </div>
-        {form.plantilla ? (
-          <div className="coord-template-state">
+          <div className="coord-template-file-row">
+            <input
+              id={inputId}
+              className="coord-template-file"
+              key={plantillaInputKey}
+              type="file"
+              accept=".docx"
+              onChange={onSelect}
+            />
+            <label className="coord-template-file-button" htmlFor={inputId}>
+              {form.plantilla ? "Cambiar Word" : "Seleccionar Word"}
+            </label>
             <div className="coord-template-file-name">
               <FileText size={16} />
-              <span title={form.plantilla}>{form.plantilla}</span>
+              <span title={form.plantilla || ""}>{form.plantilla || "Sin documento seleccionado"}</span>
             </div>
-            <span className={`coord-pill ${form.plantillaValidada ? "coord-pill-success" : "coord-pill-error"}`}>
-              {form.plantillaValidada ? "Validada" : "Pendiente"}
-            </span>
-            <button type="button" className="coord-remove-template-btn" onClick={onRemove}>
-              <X size={14} />
-              <span>Quitar plantilla</span>
-            </button>
+            {form.plantilla ? (
+              <>
+                <span className={`coord-pill ${form.plantillaValidada ? "coord-pill-success" : "coord-pill-error"}`}>
+                  {form.plantillaValidada ? "Validada" : "Pendiente"}
+                </span>
+                <button type="button" className="coord-remove-template-btn" onClick={onRemove}>
+                  <X size={14} />
+                  <span>Quitar</span>
+                </button>
+              </>
+            ) : null}
           </div>
-        ) : null}
+        </div>
       </div>
-      {plantillasDisponibles.length ? (
+      {plantillasDisponibles.length && !modoDocumentos ? (
         <div className="coord-template-reuse">
           <label>Usar plantilla de otro programa</label>
           <div className="coord-template-reuse-row">

@@ -38,6 +38,8 @@ import SummaryBox from "./components/SummaryBox";
 import TemplateUploadField from "./components/TemplateUploadField";
 import "./Coordinacion.css";
 
+const LOGO_COLEGIO_SRC = "/assets/padres/logo.png.jpg";
+
 const formInicial = {
   nombre: "", periodo: "escolar", categoria: "", grupo: "", horario: "",
   gradosAplicables: [], dias: [], horaInicio: "", horaFin: "",
@@ -853,8 +855,8 @@ function Coordinacion({ user, onLogout }) {
         >
           <ChevronRight size={18} />
         </button>
-        <div className="coord-brand"><div className="coord-brand-mark">SR</div>
-          <div className="coord-brand-copy"><span>Colegio</span><strong>San Rafael</strong></div>
+        <div className="coord-brand" aria-label="Colegio San Rafael">
+          <img className="coord-brand-logo" src={LOGO_COLEGIO_SRC} alt="Colegio San Rafael" />
         </div>
         <p className="coord-module-label">{esProfesor ? "Módulo Profesores" : "Módulo Coordinación"}</p>
         <nav className="coord-nav">
@@ -1174,6 +1176,7 @@ function Coordinacion({ user, onLogout }) {
                 )}
 
                 <div className="coord-template-workspace">
+                  <div className="coord-template-upload-row">
                     <TemplateUploadField
                       plantillaInputKey={plantillaInputKey}
                       form={form}
@@ -1185,6 +1188,24 @@ function Coordinacion({ user, onLogout }) {
                       onUseExisting={usarPlantillaExistente}
                       modoDocumentos
                     />
+                    <div className="coord-upload-actions">
+                      <button
+                        className="coord-register-button"
+                        type="button"
+                        onClick={programaDocs ? guardarDocumentosPrograma : guardarDocumentoComoPrograma}
+                        disabled={guardando || !form.plantillaValidada}
+                      >
+                        {guardando ? <Loader2 className="coord-spin" size={17} /> : <CheckCircle2 size={17} />}
+                        <span>{guardando ? "Guardando" : programaDocs ? "Actualizar documento" : "Guardar plantilla"}</span>
+                      </button>
+                      {programaDocs ? (
+                        <button className="coord-secondary-button" type="button" onClick={() => abrirEditar(programaDocs)}>
+                          <Edit3 size={17} />
+                          <span>Editar datos del programa</span>
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
                     {form.plantillaValidada ? (
                       <div className="coord-section-grid">
                         <div className="coord-field coord-field-full">
@@ -1224,29 +1245,6 @@ function Coordinacion({ user, onLogout }) {
                         )}
                       </div>
                     ) : null}
-                    <div className="coord-upload-actions">
-                      <button
-                        className="coord-register-button"
-                        type="button"
-                        onClick={programaDocs ? guardarDocumentosPrograma : guardarDocumentoComoPrograma}
-                        disabled={guardando || !form.plantillaValidada}
-                      >
-                        {guardando ? <Loader2 className="coord-spin" size={17} /> : <CheckCircle2 size={17} />}
-                        <span>{guardando ? "Guardando" : programaDocs ? "Actualizar documento" : "Guardar plantilla"}</span>
-                      </button>
-                      {form.plantilla ? (
-                        <button className="coord-danger-button" type="button" onClick={quitarPlantilla} disabled={guardando}>
-                          {guardando ? <Loader2 className="coord-spin" size={17} /> : <Trash2 size={17} />}
-                          <span>Quitar plantilla</span>
-                        </button>
-                      ) : null}
-                      {programaDocs ? (
-                        <button className="coord-secondary-button" type="button" onClick={() => abrirEditar(programaDocs)}>
-                          <Edit3 size={17} />
-                          <span>Editar datos del programa</span>
-                        </button>
-                      ) : null}
-                    </div>
                     <div className="coord-template-history">
                       <div className="coord-document-read-head">
                         <div>

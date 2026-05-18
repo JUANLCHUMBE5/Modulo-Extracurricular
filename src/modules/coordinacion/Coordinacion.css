@@ -3803,3 +3803,436 @@
     grid-column: 1;
   }
 }
+
+/* Professional white system finish, aligned with Secretaria. */
+.coord-layout,
+.coord-layout.coord-layout-collapsed {
+  --coord-sidebar-width: 230px;
+  grid-template-columns: var(--coord-sidebar-width) minmax(0, 1fr);
+  background: #ffffff;
+}
+
+.coord-sidebar {
+  width: var(--coord-sidebar-width);
+  padding: 18px 14px;
+  color: #172331;
+  background: #ffffff;
+  border-right: 1px solid #dbe7e4;
+  box-shadow: none;
+}
+
+.coord-sidebar-toggle {
+  display: none;
+}
+
+.coord-brand,
+.coord-layout.coord-layout-collapsed .coord-brand {
+  min-height: 0;
+  display: grid;
+  justify-items: center;
+  gap: 0;
+  margin: 6px 0 12px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.coord-brand-logo {
+  width: min(168px, 100%);
+  height: auto;
+  display: block;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.coord-brand-mark,
+.coord-brand-copy {
+  display: none;
+}
+
+.coord-module-label,
+.coord-layout.coord-layout-collapsed .coord-module-label {
+  display: block;
+  margin: 0 0 18px;
+  color: #176c60;
+  font-size: 12px;
+  font-weight: 900;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.coord-nav {
+  gap: 8px;
+}
+
+.coord-nav-item,
+.coord-logout,
+.coord-layout.coord-layout-collapsed .coord-nav-item,
+.coord-layout.coord-layout-collapsed .coord-logout {
+  width: 100%;
+  min-height: 40px;
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  justify-items: stretch;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #dbe7e4;
+  border-radius: 8px;
+  padding: 0 12px;
+  color: #172331;
+  background: #ffffff;
+  box-shadow: none;
+}
+
+.coord-nav-item span,
+.coord-logout span,
+.coord-layout.coord-layout-collapsed .coord-nav-item span,
+.coord-layout.coord-layout-collapsed .coord-logout span {
+  display: inline;
+}
+
+.coord-nav-item svg,
+.coord-logout svg,
+.coord-nav-item span,
+.coord-logout span {
+  color: #172331;
+  stroke: #172331;
+}
+
+.coord-nav-arrow {
+  display: none;
+}
+
+.coord-nav-item:hover,
+.coord-logout:hover {
+  color: #176c60;
+  background: #f7fbfa;
+}
+
+.coord-nav-item-active,
+.coord-layout-profesor .coord-nav-item-active {
+  color: #176c60;
+  border-color: #9dd8cb;
+  background: #eaf6f2;
+  box-shadow: none;
+}
+
+.coord-nav-item-active svg,
+.coord-nav-item-active span {
+  color: #176c60;
+  stroke: #176c60;
+}
+
+.coord-sidebar > .coord-logout {
+  margin-top: auto;
+}
+
+.coord-main {
+  grid-column: 2;
+  padding: 18px clamp(24px, 3vw, 42px) 34px;
+  background: #ffffff;
+}
+
+.coord-topbar {
+  display: none;
+}
+
+.coord-topbar-eyebrow {
+  margin-bottom: 6px;
+  color: #176c60;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+}
+
+.coord-topbar h1 {
+  font-size: clamp(25px, 2.2vw, 32px);
+  line-height: 1.08;
+}
+
+.coord-workspace-single {
+  max-width: 1040px;
+}
+
+.coord-card {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.coord-search-card {
+  min-height: auto;
+  padding: 0;
+  overflow: visible;
+}
+
+.coord-search-card::before {
+  display: none;
+}
+
+.coord-card-title {
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.coord-title-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+
+.coord-card-title h2 {
+  font-size: 18px;
+  line-height: 1.15;
+}
+
+.coord-card-title p {
+  display: none;
+}
+
+.coord-form {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.coord-filtros-row {
+  display: grid;
+  grid-template-columns: minmax(145px, 185px) auto;
+  align-items: end;
+  gap: 8px;
+}
+
+.coord-field {
+  gap: 0;
+}
+
+.coord-filtros-row .coord-field label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.coord-form select,
+.coord-register-button,
+.coord-primary-button,
+.coord-mini-btn {
+  min-height: 40px;
+  height: 40px;
+  border-radius: 7px;
+  box-shadow: none;
+}
+
+.coord-register-button,
+.coord-mini-btn {
+  border-color: #2f8f7a;
+  background: #2f8f7a;
+}
+
+.coord-empty,
+.coord-loading {
+  min-height: 150px;
+  margin-top: 14px;
+  border: 1px solid #dbe7e4;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.coord-table-responsive {
+  margin-top: 14px;
+  border: 1px solid #dbe7e4;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.coord-table-responsive .mantine-Table-table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.coord-table-responsive .mantine-Table-th {
+  padding: 10px 9px;
+  background: #fbfdfc;
+  border-bottom: 1px solid #dbe7e4;
+}
+
+.coord-table-responsive .mantine-Table-td,
+.coord-table-responsive .mantine-Table-td:first-child,
+.coord-table-responsive .mantine-Table-td:last-child {
+  border: 0;
+  border-bottom: 1px solid #e6efec;
+  border-radius: 0;
+  padding: 12px 9px;
+}
+
+.coord-program-row {
+  box-shadow: none;
+}
+
+.coord-workspace-upload .coord-upload-grid {
+  grid-template-columns: minmax(150px, 220px) minmax(0, 1fr);
+  align-items: end;
+  gap: 8px;
+}
+
+.coord-workspace-upload .coord-upload-grid .coord-field-full {
+  grid-column: auto;
+}
+
+.coord-workspace-upload .coord-readonly-field,
+.coord-workspace-upload .coord-upload-grid input[type="file"] {
+  min-height: 40px;
+  height: 40px;
+  border-radius: 7px;
+}
+
+.coord-template-workspace {
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.coord-template-upload-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 10px;
+}
+
+.coord-template-upload-row > .coord-field-full {
+  grid-column: auto;
+}
+
+.coord-template-upload-row .coord-template-compact-row {
+  gap: 6px;
+}
+
+.coord-template-upload-row .coord-template-file-control {
+  display: grid;
+  gap: 6px;
+}
+
+.coord-template-upload-row .coord-template-file-control label {
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.coord-template-upload-row .coord-template-file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.coord-template-file-row {
+  min-height: 40px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #dbe7e4;
+  border-radius: 7px;
+  padding: 5px 6px;
+  background: #ffffff;
+}
+
+.coord-template-file-button {
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #9dd8cb;
+  border-radius: 6px;
+  padding: 0 11px;
+  color: #176c60;
+  background: #eaf6f2;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.coord-template-upload-row .coord-template-file-name {
+  min-width: 0;
+  flex: none;
+  color: #172331;
+}
+
+.coord-template-upload-row .coord-template-file-name span {
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.coord-template-upload-row .coord-remove-template-btn {
+  min-height: 30px;
+  border: 1px solid #f2c4c8;
+  border-radius: 6px;
+  color: #b42318;
+  background: #fff5f6;
+  box-shadow: none;
+}
+
+.coord-template-upload-row .coord-upload-actions {
+  margin-top: 0;
+  justify-content: flex-end;
+  align-self: end;
+}
+
+.coord-template-history {
+  margin-top: 2px;
+  padding-top: 12px;
+}
+
+.coord-template-history-empty,
+.coord-workspace-single .coord-template-history-empty {
+  min-height: 140px;
+}
+
+@media (max-width: 760px) {
+  .coord-layout,
+  .coord-layout.coord-layout-collapsed {
+    --coord-sidebar-width: 100%;
+    grid-template-columns: 1fr;
+  }
+
+  .coord-sidebar {
+    position: static;
+    width: 100%;
+    min-height: auto;
+    height: auto;
+  }
+
+  .coord-main {
+    grid-column: 1;
+    padding: 18px 14px 26px;
+  }
+
+  .coord-filtros-row {
+    grid-template-columns: 1fr;
+  }
+
+  .coord-workspace-upload .coord-upload-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .coord-template-upload-row {
+    grid-template-columns: 1fr;
+  }
+
+  .coord-template-file-row {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .coord-template-upload-row .coord-upload-actions {
+    justify-content: stretch;
+  }
+}

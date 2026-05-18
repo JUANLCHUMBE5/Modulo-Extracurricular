@@ -4,7 +4,6 @@ import { notifications } from "@mantine/notifications";
 import {
   IconAlertCircle as AlertCircle,
   IconCalendar as CalendarDays,
-  IconChevronRight as ChevronRight,
   IconCircleCheck as CheckCircle2,
   IconClipboardCheck as ClipboardCheck,
   IconFileText as FileText,
@@ -43,15 +42,11 @@ import {
   CampoLectura,
   CampoTexto,
   DatoHorario,
-  ProcesoItem,
   formatearCuposSecretaria,
   resumirClaseSecretaria,
   resumirHorarioSecretaria,
 } from "./components/SecretariaFields";
 import "./Secretaria.css";
-
-const LOGO_COLEGIO_URL =
-  "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT8ss429VynuUkBBQBrN6Up-lUBby7o0oqjvQ&s";
 
 const formularioInicial = {
   dniExterno: "",
@@ -72,6 +67,8 @@ const formularioInicial = {
   aceptaCondiciones: false,
 };
 
+const LOGO_COLEGIO_SRC = "/assets/padres/logo.png.jpg";
+
 function Secretaria({ onLogout }) {
   const [periodo, setPeriodo] = useState("escolar");
   const [dni, setDni] = useState("");
@@ -86,7 +83,6 @@ function Secretaria({ onLogout }) {
   const [guardando, setGuardando] = useState(false);
   const [imprimiendoFichaRegistro, setImprimiendoFichaRegistro] = useState(false);
   const [resultadosNombre, setResultadosNombre] = useState([]);
-  const [documentoGenerado, setDocumentoGenerado] = useState(false);
 
   function mostrarMensaje(texto, tipo = "error") {
     setMensaje(texto);
@@ -133,7 +129,6 @@ function Secretaria({ onLogout }) {
     setInscripción(null);
     setModoRegistro(false);
     setModalExito(false);
-    setDocumentoGenerado(false);
     setMensaje("");
   }, [periodo]);
 
@@ -264,7 +259,6 @@ function Secretaria({ onLogout }) {
       estadoPago: registroExistente?.estadoPago || encontrado.estadoPago,
     });
     setInscripción(registroExistente);
-    setDocumentoGenerado(false);
     setFormulario({
       ...formularioInicial,
       programa: encontrado.tieneInvitacion ? encontrado.programaAsignado : "",
@@ -296,7 +290,6 @@ function Secretaria({ onLogout }) {
     setModoRegistro(false);
     setModalExito(false);
     setResultadosNombre([]);
-    setDocumentoGenerado(false);
   }
 
   async function guardarInscripción(event) {
@@ -446,7 +439,6 @@ function Secretaria({ onLogout }) {
       });
 
       setInscripción(registro);
-      setDocumentoGenerado(false);
       setEstudiante((actual) =>
         actual ? {
           ...actual,
@@ -514,7 +506,6 @@ function Secretaria({ onLogout }) {
         inscripcion: fichaRegistro,
         tipoDocumento: fichaRegistro.plantilla ? "Comunicado personalizado" : "Ficha personalizada",
       });
-      setDocumentoGenerado(true);
       await imprimirInscripcionDirecta(estudiante, fichaRegistro);
     } catch (err) {
       mostrarMensaje(err.message || "No se pudo preparar la ficha para imprimir.");
@@ -560,19 +551,17 @@ function Secretaria({ onLogout }) {
   return (
     <div className="secretaria-layout">
       <aside className="secretaria-sidebar">
-        <div className="secretaria-brand" aria-label="Colegio San Rafael">
-          <div className="secretaria-brand-mark secretaria-brand-logo-frame">
-            <img src={LOGO_COLEGIO_URL} alt="Marca Colegio San Rafael" />
+        <div className="secretaria-sidebar-brand" aria-label="Colegio San Rafael">
+          <img src={LOGO_COLEGIO_SRC} alt="Colegio San Rafael" />
+          <div>
+            <span>Secretaria</span>
           </div>
         </div>
 
-        <p className="secretaria-module-label">Secretaria</p>
-
         <nav className="secretaria-nav" aria-label="Menu del modulo secretaria">
-          <button className="secretaria-nav-item secretaria-nav-item-active">
+          <button className="secretaria-nav-item secretaria-nav-item-active" type="button">
             <Search size={18} />
             <span>Inscripción presencial</span>
-            <ChevronRight size={16} />
           </button>
         </nav>
 
@@ -597,11 +586,11 @@ function Secretaria({ onLogout }) {
               </div>
             </div>
 
-            <form onSubmit={buscarEstudiante} className="secretaria-form">
+            <form onSubmit={buscarEstudiante} className="secretaria-form secretaria-search-form-compact">
               <div className="secretaria-field">
                 <label htmlFor="periodo">
                   <CalendarDays size={15} />
-                  Periodo de inscripcion
+                  Periodo
                 </label>
                 <select
                   id="periodo"
@@ -824,28 +813,6 @@ function Secretaria({ onLogout }) {
               </section>
             ) : null}
           </article>
-
-          <aside className="secretaria-card secretaria-process-card">
-            <div className="secretaria-process-heading">
-              <h2>Proceso</h2>
-              <span>{inscripcion ? "Derivar a Caja" : "En atencion"}</span>
-            </div>
-
-            <div className="secretaria-process-list">
-              <ProcesoItem activo completado={Boolean(estudiante)} texto="Busqueda" />
-              <ProcesoItem activo={Boolean(estudiante)} completado={modoRegistro || Boolean(inscripcion)} texto="Apoderado" />
-              <ProcesoItem activo={Boolean(inscripcion)} completado={Boolean(inscripcion)} texto="Inscripcion" />
-              <ProcesoItem activo={Boolean(inscripcion)} completado={documentoGenerado} texto="Ficha" />
-            </div>
-
-            {inscripcion ? (
-              <div className="secretaria-ticket">
-                <span>Codigo</span>
-                <strong>{inscripcion.id}</strong>
-                <p>Pago pendiente. Puede derivar a Caja.</p>
-              </div>
-            ) : null}
-          </aside>
 
         </section>
 
