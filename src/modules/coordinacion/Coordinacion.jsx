@@ -1249,7 +1249,7 @@ function Coordinacion({ user, onLogout }) {
                       <div className="coord-document-read-head">
                         <div>
                           <strong>Historial de plantillas subidas</strong>
-                          <span>Plantillas disponibles para Gestión de Programas</span>
+                        
                         </div>
                       </div>
                       {historialPlantillas.length ? (

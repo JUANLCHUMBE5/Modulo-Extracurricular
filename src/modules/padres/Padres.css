@@ -3293,3 +3293,241 @@
     min-width: 158px;
   }
 }
+
+/* Modern assistant panel */
+.padres-assistant {
+  right: 18px;
+  bottom: 18px;
+  width: min(340px, calc(100vw - 24px));
+  max-height: min(560px, calc(100vh - 36px));
+  border: 1px solid #f2c28d;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 18px 42px rgba(145, 75, 16, 0.16);
+}
+
+.padres-assistant header {
+  padding: 11px 12px;
+  border-bottom: 1px solid #f4ddc2;
+  background: #ffffff;
+  box-shadow: none;
+}
+
+.padres-rafael-avatar,
+.padres-bot-avatar {
+  color: #a04b08;
+  background: #fff2e3;
+  box-shadow: none;
+}
+
+.padres-rafael-avatar {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #f1c895;
+  border-radius: 11px;
+}
+
+.padres-assistant header strong {
+  color: #172331;
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.padres-assistant header span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  color: #607086;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.padres-assistant header span i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #f28c38;
+  box-shadow: 0 0 0 3px rgba(242, 140, 56, 0.16);
+}
+
+.padres-assistant header button {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #f2d5b2;
+  border-radius: 9px;
+  color: #4f6173;
+  background: #ffffff;
+  box-shadow: none;
+}
+
+.padres-assistant header button:hover {
+  color: #172331;
+  background: #fff7ef;
+}
+
+.padres-assistant-body {
+  gap: 9px;
+  min-height: 190px;
+  max-height: 255px;
+  padding: 12px;
+  background: #fffaf5;
+}
+
+.padres-chat {
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.padres-bot-avatar {
+  width: 25px;
+  height: 25px;
+  border: 1px solid #f1c895;
+  border-radius: 9px;
+}
+
+.padres-chat p {
+  max-width: min(86%, 255px);
+  padding: 9px 10px;
+  border: 1px solid #f1dfcc;
+  border-radius: 11px;
+  color: #2e3a48;
+  background: #ffffff;
+  font-size: 12px;
+  line-height: 1.45;
+  box-shadow: none;
+}
+
+.padres-chat-bot p {
+  border-radius: 4px 11px 11px 11px;
+}
+
+.padres-chat-padre p {
+  border-color: #d86716;
+  border-radius: 11px 4px 11px 11px;
+  color: #ffffff;
+  background: #d86716;
+  box-shadow: none;
+}
+
+.padres-assistant-shortcuts {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border-top: 1px solid #f4ddc2;
+  background: #ffffff;
+}
+
+.padres-assistant-shortcuts > span {
+  color: #667085;
+  font-size: 11px;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+.padres-assistant-shortcuts > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.padres-assistant-shortcuts button {
+  min-height: 31px;
+  justify-content: flex-start;
+  gap: 6px;
+  border-color: #f2d5b2;
+  border-radius: 8px;
+  padding: 0 8px;
+  color: #8c520f;
+  background: #ffffff;
+  font-size: 11px;
+  font-weight: 900;
+  box-shadow: none;
+}
+
+.padres-assistant-shortcuts button:hover {
+  border-color: #f28c38;
+  color: #8c520f;
+  background: #fff4df;
+  box-shadow: none;
+}
+
+.padres-assistant-form {
+  gap: 7px;
+  padding: 10px 12px 12px;
+  border-top: 1px solid #f4ddc2;
+}
+
+.padres-assistant-form input {
+  height: 36px;
+  border-color: #f2d5b2;
+  border-radius: 9px;
+  background: #ffffff;
+}
+
+.padres-assistant-form input:focus {
+  border-color: #f28c38;
+  box-shadow: 0 0 0 3px rgba(242, 140, 56, 0.14);
+}
+
+.padres-assistant-form button,
+.padres-assistant-fab {
+  border: 1px solid #d86716;
+  border-radius: 9px;
+  color: #ffffff;
+  background: #d86716;
+  box-shadow: 0 12px 24px rgba(216, 103, 22, 0.18);
+}
+
+.padres-assistant-form button {
+  width: 38px;
+  min-height: 36px;
+  padding: 0;
+}
+
+.padres-assistant-form button:hover,
+.padres-assistant-fab:hover {
+  background: #bd550f;
+  box-shadow: 0 14px 28px rgba(216, 103, 22, 0.22);
+  transform: translateY(-1px);
+}
+
+.padres-assistant-form button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+  transform: none;
+  box-shadow: none;
+}
+
+.padres-assistant-fab {
+  right: 18px;
+  bottom: 18px;
+  min-height: 42px;
+  padding: 0 13px;
+  border-radius: 999px;
+  font-weight: 950;
+}
+
+@media (max-width: 640px) {
+  .padres-assistant {
+    right: 10px;
+    bottom: 10px;
+    width: calc(100vw - 20px);
+    max-height: calc(100vh - 20px);
+    border-radius: 14px;
+  }
+
+  .padres-assistant-body {
+    max-height: 44vh;
+  }
+
+  .padres-assistant-shortcuts > div {
+    grid-template-columns: 1fr;
+  }
+
+  .padres-assistant-fab {
+    right: 14px;
+    bottom: 14px;
+  }
+}

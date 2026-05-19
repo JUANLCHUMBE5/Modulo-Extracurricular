@@ -10,7 +10,7 @@ import {
 const mensajesIniciales = [
   {
     autor: "bot",
-    texto: "Hola, soy el asistente del portal de padres. Puedo ayudarte con el programa, horario, monto, ficha y estado de pago.",
+    texto: "Hola, soy Rafael. Puedo orientarte sobre el programa, horario, pago, ficha y el siguiente paso del registro.",
   },
 ];
 
@@ -270,27 +270,79 @@ function usePadres(user) {
 }
 
 function responderAsistente(pregunta, { estudiante, programa, inscripcion, tipoReforzamiento }) {
-  const texto = pregunta.toLowerCase();
-  if (!programa) return "Por ahora no hay un programa asignado. Cuando Coordinacion registre la invitacion, aparecera en esta pantalla.";
-  if (texto.includes("monto") || texto.includes("pagar") || texto.includes("costo")) {
-    return `El monto registrado para ${programa.programa} es ${formatearSoles(programa.costo)}. El estado de pago es ${inscripcion?.estadoPago || "Pendiente de pago"}.`;
+  const texto = normalizarConsulta(pregunta);
+  const nombreEstudiante = obtenerNombreCorto(estudiante?.nombres);
+
+  if (!programa) {
+    if (coincideConsulta(texto, ["programa", "taller", "inscripcion", "registrar"])) {
+      return `Aun no hay un programa asignado para ${nombreEstudiante}. Cuando Coordinacion habilite una invitacion o un taller disponible, lo veras en esta pantalla.`;
+    }
+    return "Por ahora no encuentro un programa activo para este estudiante. Revisa nuevamente cuando Coordinacion publique o asigne el programa.";
   }
-  if (texto.includes("horario")) {
-    return `El horario registrado es: ${programa.horario || "por confirmar"}.`;
+
+  const nombrePrograma = programa.programa || "el programa asignado";
+  const estadoInscripcion = obtenerEstadoInscripcionAsistente({ programa, inscripcion });
+  const estadoPago = inscripcion?.estadoPago || "Pendiente de pago";
+  const costo = formatearSoles(programa.costo);
+  const horario = programa.horario || "horario por confirmar";
+
+  if (coincideConsulta(texto, ["estado", "situacion", "proceso", "pendiente"])) {
+    return `Estado actual: ${estadoInscripcion}. Pago: ${estadoPago}.`;
   }
-  if (texto.includes("ficha") || texto.includes("descargar")) {
-    return "La ficha estara disponible cuando Secretaria confirme la inscripcion y genere el documento correspondiente.";
+
+  if (coincideConsulta(texto, ["monto", "pagar", "pago", "costo", "precio", "cuanto"])) {
+    if (!inscripcion) {
+      return `${nombrePrograma} tiene un costo registrado de ${costo}. Antes de pagar, revisa la informacion del programa y solicita el registro para que quede pendiente de validacion en Caja.`;
+    }
+    return `El monto registrado para ${nombrePrograma} es ${costo}. El pago figura como: ${estadoPago}.`;
   }
-  if (texto.includes("qr")) {
-    return "El QR se habilitara cuando Caja valide el pago del programa.";
+
+  if (coincideConsulta(texto, ["horario", "hora", "dia", "dias", "clase"])) {
+    return `El horario registrado para ${nombrePrograma} es: ${horario}. Si ves "por confirmar", Coordinacion aun debe completar el horario.`;
   }
-  if (texto.includes("estado")) {
-    return `La inscripcion figura como ${inscripcion?.estadoInscripcion || (inscripcion ? "Registrada" : "Pendiente de inscripcion presencial")} y el pago como ${inscripcion?.estadoPago || "Pendiente de pago"}.`;
+
+  if (coincideConsulta(texto, ["ficha", "descargar", "documento", "comunicado", "pdf"])) {
+    if (!inscripcion) {
+      return "La ficha se habilita despues de registrar la inscripcion. Primero revisa el comunicado del programa y confirma los datos del apoderado.";
+    }
+    return "La ficha o comunicado queda disponible cuando Secretaria confirma la inscripcion y genera el documento correspondiente.";
   }
-  if (texto.includes("hacer") || texto.includes("siguiente")) {
+
+  if (coincideConsulta(texto, ["qr", "codigo", "voucher"])) {
+    return "El QR o constancia de pago se habilita cuando Caja valida el pago del programa. Mientras tanto, el estado permanecera como pendiente.";
+  }
+
+  if (coincideConsulta(texto, ["hacer", "siguiente", "ahora", "ayuda", "paso"])) {
     return obtenerSiguientePaso({ programa, inscripcion }).detalle;
   }
-  return `Su hijo(a) ${estudiante?.nombres || ""} tiene asignado el programa ${programa.programa}, correspondiente a ${tipoReforzamiento}.`;
+
+  if (coincideConsulta(texto, ["programa", "taller", "curso", "asignado"])) {
+    return `${nombreEstudiante} tiene asignado ${nombrePrograma}. Tipo: ${tipoReforzamiento}. Horario: ${horario}. Costo: ${costo}.`;
+  }
+
+  if (coincideConsulta(texto, ["apoderado", "telefono", "correo", "datos"])) {
+    return "Verifica los datos del apoderado en el formulario de confirmacion. El telefono debe tener 9 digitos y el correo puede quedar vacio si no desea recibir documentos por email.";
+  }
+
+  return `Puedo ayudarte con programa, horario, pago, ficha, estado o el siguiente paso. Para ${nombrePrograma}, lo mas importante ahora es: ${obtenerSiguientePaso({ programa, inscripcion }).detalle}`;
+}
+
+function normalizarConsulta(valor) {
+  return String(valor || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function coincideConsulta(texto, palabras) {
+  return palabras.some((palabra) => texto.includes(palabra));
+}
+
+function obtenerEstadoInscripcionAsistente({ programa, inscripcion }) {
+  if (inscripcion?.estadoInscripcion) return inscripcion.estadoInscripcion;
+  if (inscripcion) return "Inscripcion registrada";
+  if (programa) return "Programa asignado, pendiente de registrar";
+  return "Sin programa asignado";
 }
 
 function obtenerTipoReforzamiento(programa) {

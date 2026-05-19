@@ -122,8 +122,9 @@
       "requiereUniforme": false,
       "id": "PROG-008",
       "cuposOcupados": 0,
-      "estado": "Deshabilitado",
-      "creadoDesdeDocumento": true
+      "estado": "Finalizado",
+      "creadoDesdeDocumento": true,
+      "finalizadoAutomaticamenteEn": "2026-05-19T11:20:11-05:00"
     }
   ],
   "invitadosPorPrograma": {

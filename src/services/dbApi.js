@@ -1,23 +1,40 @@
 import { localDbApi } from "./apiClient";
+import { mockDb, resetMockDb, saveMockDb, syncMockDbFromStorage } from "./localDbClient";
 
 export const apiDb = {};
 
 export async function syncApiDb() {
-  const db = await localDbApi.getDatabase();
-  replaceApiDb(db);
+  try {
+    const db = await localDbApi.getDatabase();
+    replaceApiDb(db);
+  } catch {
+    const db = await syncMockDbFromStorage();
+    replaceApiDb(db);
+  }
   return apiDb;
 }
 
 export async function saveApiDb() {
-  const db = await localDbApi.saveDatabase(apiDb);
-  replaceApiDb(db);
+  try {
+    const db = await localDbApi.saveDatabase(apiDb);
+    replaceApiDb(db);
+  } catch {
+    replaceMockDb(apiDb);
+    await saveMockDb();
+    replaceApiDb(mockDb);
+  }
   dispatchApiDbUpdated();
   return apiDb;
 }
 
 export async function resetApiDb() {
-  const db = await localDbApi.resetDatabase();
-  replaceApiDb(db);
+  try {
+    const db = await localDbApi.resetDatabase();
+    replaceApiDb(db);
+  } catch {
+    await resetMockDb();
+    replaceApiDb(mockDb);
+  }
   dispatchApiDbUpdated();
   return apiDb;
 }
@@ -33,6 +50,13 @@ function replaceApiDb(db) {
     delete apiDb[key];
   });
   Object.assign(apiDb, db || {});
+}
+
+function replaceMockDb(db) {
+  Object.keys(mockDb).forEach((key) => {
+    delete mockDb[key];
+  });
+  Object.assign(mockDb, db || {});
 }
 
 function dispatchApiDbUpdated() {

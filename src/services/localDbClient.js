@@ -254,9 +254,9 @@ function mergeWithDefaults(stored, defaults) {
   const merged = {
     ...defaults,
     ...stored,
-    categorias: stored.categorias || defaults.categorias,
+    categorias: Array.isArray(stored.categorias) && stored.categorias.length ? stored.categorias : defaults.categorias,
     estudiantes: mergeEstudiantes(defaults.estudiantes, stored.estudiantes || {}),
-    programas: stored.programas || defaults.programas,
+    programas: Array.isArray(stored.programas) && stored.programas.length ? stored.programas : defaults.programas,
     invitadosPorPrograma: {
       ...defaults.invitadosPorPrograma,
       ...(stored.invitadosPorPrograma || {}),
@@ -266,7 +266,7 @@ function mergeWithDefaults(stored, defaults) {
     pagos: stored.pagos || defaults.pagos,
     asistencias: stored.asistencias || defaults.asistencias,
     historialCargas: stored.historialCargas || defaults.historialCargas,
-    usuarios: stored.usuarios || defaults.usuarios,
+    usuarios: Array.isArray(stored.usuarios) && stored.usuarios.length ? stored.usuarios : defaults.usuarios,
   };
   repararDatosBaseDemo(merged, defaults);
   return merged;
