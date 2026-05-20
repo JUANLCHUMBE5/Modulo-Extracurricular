@@ -12,7 +12,7 @@ import { promisify } from "util";
 import { getDb, getDbSource, resetDb, saveDb } from "./localDb.js";
 
 const app = express();
-const PORT = Number(process.env.EXCEL_API_PORT || 5175);
+const PORT = Number(process.env.PORT || process.env.EXCEL_API_PORT || 5175);
 const API_HOST = process.env.API_HOST || (process.env.NODE_ENV === "production" ? "0.0.0.0" : "127.0.0.1");
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const MAX_WORD_FILE_SIZE = 25 * 1024 * 1024;
@@ -49,6 +49,10 @@ app.use(cors({
   },
 }));
 app.use(express.json({ limit: "30mb" }));
+
+app.get("/", (_req, res) => {
+  res.json({ ok: true, service: "modulo-extracurricular-api", dbSource: getDbSource() });
+});
 
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true, dbSource: getDbSource() });
