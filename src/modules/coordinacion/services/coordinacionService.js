@@ -2,7 +2,11 @@ import { apiDb, nextApiId, saveApiDb, syncApiDb } from "../../../services/dbApi"
 import { fechaActualInput, fechaActualIso, normalizarFecha } from "../../../services/dateService";
 
 const delay = (ms = 600) => new Promise((resolve) => setTimeout(resolve, ms));
-const obtenerApiBase = () => String(import.meta.env.VITE_API_URL || import.meta.env.VITE_LOCAL_API_URL || "").replace(/\/$/, "");
+const obtenerApiBase = () => String(
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.DEV ? import.meta.env.VITE_LOCAL_API_URL : "") ||
+  ""
+).replace(/\/$/, "");
 
 export async function listarCategorias() {
   await delay(300);
