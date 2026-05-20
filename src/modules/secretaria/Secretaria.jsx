@@ -69,6 +69,14 @@ const formularioInicial = {
 
 const LOGO_COLEGIO_SRC = "/assets/padres/logo.png.jpg";
 
+function normalizarComparacion(valor) {
+  return String(valor || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
 function Secretaria({ onLogout }) {
   const [periodo, setPeriodo] = useState("escolar");
   const [dni, setDni] = useState("");
@@ -117,6 +125,8 @@ function Secretaria({ onLogout }) {
     requisitos: estudiante.programaRequisitos,
     fechaInicio: estudiante.programaFechaInicio,
     fechaFin: estudiante.programaFechaFin,
+    seleccion: estudiante.seleccion,
+    nivelCambridge: estudiante.nivelCambridge,
     plantilla: estudiante.plantilla,
     plantillaBase64: estudiante.plantillaBase64,
     plantillaVariables: estudiante.plantillaVariables,
@@ -426,6 +436,8 @@ function Secretaria({ onLogout }) {
         telefono: formulario.telefono,
         correo: "",
         medioEnvio: "Impreso",
+        seleccion: estudiante.seleccion || programaParaRegistro?.seleccion || "",
+        nivelCambridge: estudiante.nivelCambridge || programaParaRegistro?.nivelCambridge || "",
         tallaUniforme: formulario.tallaUniforme,
         observacion: formulario.observacion.trim(),
         origenRegistro: estudiante.esExterno
@@ -565,6 +577,8 @@ function Secretaria({ onLogout }) {
       plantillaBase64: programaActual.plantillaBase64 || registro.plantillaBase64,
       plantillaVariables: programaActual.plantillaVariables || registro.plantillaVariables || [],
       requiereUniforme: programaActual.requiereUniforme ?? registro.requiereUniforme,
+      seleccion: registro.seleccion || estudiante?.seleccion || "",
+      nivelCambridge: registro.nivelCambridge || estudiante?.nivelCambridge || "",
     };
   }
 

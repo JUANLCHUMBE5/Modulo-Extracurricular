@@ -487,10 +487,9 @@ function removerMarcasAguaWord(zip) {
 }
 
 function quitarBloquesMarcaAguaWord(xml) {
-  return String(xml || "")
-    .replace(/<w:pict\b[^>]*>[\s\S]*?WordPictureWatermark[\s\S]*?<\/w:pict>/gi, "")
-    .replace(/<w:drawing\b[^>]*>[\s\S]*?WordPictureWatermark[\s\S]*?<\/w:drawing>/gi, "")
-    .replace(/<v:shape\b(?=[^>]*WordPictureWatermark)[\s\S]*?<\/v:shape>/gi, "");
+  return String(xml || "").replace(/<w:pict\b[^>]*>[\s\S]*?<\/w:pict>/gi, (bloque) => (
+    bloque.includes("WordPictureWatermark") ? "" : bloque
+  ));
 }
 
 function limpiarPaginasDocxVacias(contenedor) {
@@ -697,6 +696,8 @@ function crearMapaVariablesDocumento(estudiante, inscripcion) {
   const niveles = horarioDocumento.niveles;
   const pago = inscripcion.modalidadCobro || "";
   const anioActual = String(new Date().getFullYear());
+  const seleccionCambridge = normalizarSeleccionCambridge(inscripcion.seleccion || estudiante?.seleccion);
+  const marcaSeleccion = "X";
   return {
     N_COM: inscripcion.id || "",
     TITULO: `Comunicado ${programa}`.trim(),
@@ -730,9 +731,9 @@ function crearMapaVariablesDocumento(estudiante, inscripcion) {
     NIV: gradoSeccion || grado,
     AUL: aula,
     HORARIO: horarioCambridge || horario,
-    CHK_A: "",
-    CHK_B: "",
-    CHK_C: "",
+    CHK_A: seleccionCambridge === "A" ? marcaSeleccion : "",
+    CHK_B: seleccionCambridge === "B" ? marcaSeleccion : "",
+    CHK_C: seleccionCambridge === "C" ? marcaSeleccion : "",
     APOD: apoderado,
     CEL: telefono,
     num: inscripcion.id || "",
@@ -904,6 +905,11 @@ function extraerDiasHorario(horario) {
   return dias
     .filter((dia) => texto.includes(normalizarComparacion(dia)))
     .join(", ");
+}
+
+function normalizarSeleccionCambridge(valor) {
+  const texto = normalizarComparacion(valor).replace(/[^abc]/g, "");
+  return texto.charAt(0).toUpperCase();
 }
 
 function extraerHorasHorario(horario) {

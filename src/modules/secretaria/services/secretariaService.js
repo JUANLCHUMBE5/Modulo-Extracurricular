@@ -164,6 +164,8 @@ export async function registrarInscripcion(payload) {
     plantilla: programa.plantilla || "",
     plantillaBase64: programa.plantillaBase64 || "",
     plantillaVariables: programa.plantillaVariables || [],
+    seleccion: payload.seleccion || "",
+    nivelCambridge: payload.nivelCambridge || "",
     requiereUniforme: Boolean(programa.requiereUniforme),
   };
 
@@ -361,6 +363,8 @@ function adaptarEstudianteBase(estudiante, periodoNormalizado, invitacionPeriodo
     programaRequisitos: programa.requisitos || "",
     programaFechaInicio: programa.fechaInicio || "",
     programaFechaFin: programa.fechaFin || "",
+    seleccion: invitado.seleccion || "",
+    nivelCambridge: invitado.nivelCambridge || "",
     plantilla: programa.plantilla || "",
     plantillaBase64: programa.plantillaBase64 || "",
     plantillaVariables: programa.plantillaVariables || [],
