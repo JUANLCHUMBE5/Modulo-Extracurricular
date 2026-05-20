@@ -88,6 +88,33 @@ const variablesPlantillaRequeridas = [
   { id: "cel", label: "CEL", aliases: ["CEL", "CELULAR", "TELEFONO", "TELÉFONO"] },
 ];
 
+const variablesPlantillaCambridge = [
+  { id: "fecha_carta", label: "FECHA_CARTA", aliases: ["FECHA_CARTA"] },
+  { id: "anio_carta", label: "ANIO_CARTA", aliases: ["ANIO_CARTA", "AÑO_CARTA"] },
+  { id: "anio_cert", label: "ANIO_CERT", aliases: ["ANIO_CERT", "AÑO_CERT"] },
+  { id: "alu", label: "ALU", aliases: ["ALU", "ALUMNO"] },
+  { id: "niv", label: "NIV", aliases: ["NIV", "NIVEL"] },
+  { id: "aul", label: "AUL", aliases: ["AUL", "AULA"] },
+  { id: "horario", label: "HORARIO", aliases: ["HORARIO"] },
+  { id: "ciclo_i", label: "CICLO_I", aliases: ["CICLO_I"] },
+  { id: "ciclo_ii", label: "CICLO_II", aliases: ["CICLO_II"] },
+  { id: "costo", label: "COSTO", aliases: ["COSTO"] },
+  { id: "pago", label: "PAGO", aliases: ["PAGO"] },
+  { id: "chk_a", label: "CHK_A", aliases: ["CHK_A"] },
+  { id: "chk_b", label: "CHK_B", aliases: ["CHK_B"] },
+  { id: "chk_c", label: "CHK_C", aliases: ["CHK_C"] },
+];
+
+const modelosPlantilla = [
+  { id: "general", label: "Formato general", variables: variablesPlantillaRequeridas },
+  { id: "cambridge", label: "Formato Cambridge", variables: variablesPlantillaCambridge },
+];
+
+const variablesPlantillaAceptadas = unirVariablesPlantilla([
+  ...variablesPlantillaRequeridas,
+  ...variablesPlantillaCambridge,
+]);
+
 const nivelesGrados = [
   { nivel: "Inicial", grados: ["3 años", "4 años", "5 años"] },
   { nivel: "Primaria", grados: ["1", "2", "3", "4", "5", "6"] },
@@ -271,12 +298,14 @@ function Coordinacion({ user, onLogout }) {
       if (modoEditar) {
         await editarPrograma(form.id, datosGuardar);
         mostrarMsg("Programa actualizado correctamente.", "success");
+        await cargarDatos();
+        setForm(datosProgramaAFormulario(datosGuardar));
       } else {
         await crearPrograma(datosGuardar);
         mostrarMsg("Programa creado correctamente.", "success");
+        await cargarDatos();
+        setShowModal(false);
       }
-      await cargarDatos();
-      setShowModal(false);
     } catch (err) {
       mostrarMsg(err.message);
     }
@@ -1122,7 +1151,7 @@ function Coordinacion({ user, onLogout }) {
                       <table className="coord-table">
                         <thead>
                           <tr>
-                            <th>Alumno</th><th>Grado</th><th>Sección</th><th>Curso solicitado</th><th>Estado</th>
+                            <th>Alumno</th><th>Grado</th><th>Sección</th><th>Selección</th><th>Curso / nivel</th><th>Estado</th><th>Motivo</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1131,8 +1160,10 @@ function Coordinacion({ user, onLogout }) {
                               <td>{`${reg.nombres} ${reg.apellidos}`.trim() || "-"}</td>
                               <td>{reg.grado || "-"}</td>
                               <td>{reg.seccion || "-"}</td>
-                              <td>{reg.curso || "-"}</td>
+                              <td>{reg.seleccion || "-"}</td>
+                              <td>{reg.curso || reg.nivelCambridge || "-"}</td>
                               <td><span className={`coord-pill ${reg.estado === "Valido" ? "coord-pill-success" : reg.estado === "Duplicado" ? "coord-pill-warning" : "coord-pill-error"}`}>{textoEstadoCarga(reg.estado)}</span></td>
+                              <td>{reg.errores?.length ? reg.errores.join(" ") : "-"}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -1142,7 +1173,7 @@ function Coordinacion({ user, onLogout }) {
                 ) : (
                   <div className="coord-empty">
                     <Upload size={18} />
-                    <p>Suba un Excel con DNI, nombres, apellidos, grado, sección y curso_programa para generar la vista previa.</p>
+                    <p>Suba un Excel con alumnos del programa. Para Cambridge se aceptan columnas como Alumno, Grado, Sección, Selección y Nivel Cambridge.</p>
                   </div>
                 )}
 
@@ -1182,7 +1213,7 @@ function Coordinacion({ user, onLogout }) {
                       plantillaInputKey={plantillaInputKey}
                       form={form}
                       programas={programas}
-                      variablesPlantillaRequeridas={variablesPlantillaRequeridas}
+                      variablesPlantillaRequeridas={variablesPlantillaAceptadas}
                       onSelect={seleccionarPlantilla}
                       onRemove={quitarPlantilla}
                       onAutoFill={autocompletarDesdePlantilla}
@@ -1294,7 +1325,7 @@ function Coordinacion({ user, onLogout }) {
 
         {/* ─── MODAL: CREAR / EDITAR PROGRAMA ─── */}
         {showModal && (
-          <div className="coord-modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="coord-modal-overlay">
             <div className="coord-modal" onClick={e => e.stopPropagation()}>
               <div className="coord-modal-header">
                 <div className="coord-modal-title">
@@ -1618,11 +1649,13 @@ async function analizarZipPlantilla(zip, opciones = {}) {
 
   const contenidos = await Promise.all(archivosXml.map((file) => file.async("text")));
   const contenido = contenidos.join(" ");
-  const texto = normalizarVariable(contenido.replace(/<[^>]+>/g, " "));
-  const presentes = variablesPlantillaRequeridas
-    .filter((variable) => variable.aliases.some((alias) => texto.includes(normalizarVariable(alias))))
-    .map((variable) => variable.id);
-  const faltantes = variablesPlantillaRequeridas.filter((variable) => !presentes.includes(variable.id));
+  const textoPlano = contenidos.map(extraerTextoPlanoXml).join("\n");
+  const presentes = detectarVariablesPlantilla(contenido, variablesPlantillaAceptadas);
+  const modeloDetectado = modelosPlantilla.find((modelo) =>
+    modelo.variables.every((variable) => presentes.includes(variable.id))
+  );
+  const variablesBase = modeloDetectado?.variables || variablesPlantillaRequeridas;
+  const faltantes = variablesBase.filter((variable) => !presentes.includes(variable.id));
 
   if (validarVariables && faltantes.length) {
     throw new Error(`La plantilla no contiene variables requeridas: ${faltantes.map((item) => item.label).join(", ")}.`);
@@ -1632,8 +1665,34 @@ async function analizarZipPlantilla(zip, opciones = {}) {
     variablesDetectadas: presentes,
     variablesFaltantes: faltantes.map((item) => item.id),
     plantillaValida: faltantes.length === 0,
-    textoPlano: contenidos.map(extraerTextoPlanoXml).join("\n"),
+    plantillaModelo: modeloDetectado?.id || "general",
+    textoPlano,
   };
+}
+
+function unirVariablesPlantilla(variables) {
+  const vistas = new Map();
+  variables.forEach((variable) => {
+    if (!vistas.has(variable.id)) vistas.set(variable.id, variable);
+  });
+  return Array.from(vistas.values());
+}
+
+function detectarVariablesPlantilla(contenidoXml, variables) {
+  const contenido = decodificarXml(String(contenidoXml || "").replace(/<[^>]+>/g, " "));
+  return variables
+    .filter((variable) => variable.aliases.some((alias) => contieneAliasPlantilla(contenido, alias)))
+    .map((variable) => variable.id);
+}
+
+function contieneAliasPlantilla(contenido, alias) {
+  const limpio = String(alias || "").trim();
+  if (!limpio) return false;
+  const flexible = escaparRegExp(limpio)
+    .replace(/\\ /g, "\\s+")
+    .replace(/_/g, "[_\\s]+");
+  const patron = new RegExp(`(^|[^A-Za-z0-9_])${flexible}([^A-Za-z0-9_]|$)`, "i");
+  return patron.test(contenido);
 }
 
 function extraerDatosProgramaDesdeWord(textoPlano, nombreArchivo, categorias = []) {

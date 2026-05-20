@@ -18,7 +18,7 @@ const execFileAsync = promisify(execFile);
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: MAX_FILE_SIZE, files: 1 },
+  limits: { fileSize: MAX_FILE_SIZE, files: 1, fieldSize: 5 * 1024 * 1024 },
 });
 
 const documentUpload = multer({
@@ -184,8 +184,7 @@ app.post("/api/coordinacion/cargas/preview", upload.single("archivo"), async (re
     validarArchivoExcel(archivo);
 
     const programasPeriodo = programas.filter((programa) =>
-      normalizarPeriodo(programa.periodo) === periodo &&
-      String(programa.estado || "Habilitado") === "Habilitado"
+      normalizarPeriodo(programa.periodo) === periodo
     );
 
     const filas = await leerExcelSeguro(archivo);
@@ -232,7 +231,12 @@ app.post("/api/secretaria/documentos/pdf", documentUpload.single("archivo"), asy
 
 app.use((error, _req, res, _next) => {
   if (error instanceof multer.MulterError) {
-    return res.status(400).json({ message: "El archivo no cumple las condiciones permitidas." });
+    const mensajes = {
+      LIMIT_FILE_SIZE: "El archivo Excel no debe superar 5 MB.",
+      LIMIT_FIELD_VALUE: "La informacion enviada para validar el Excel es demasiado pesada. Actualice la pagina e intente nuevamente.",
+      LIMIT_UNEXPECTED_FILE: "Solo se puede procesar un archivo Excel por validacion.",
+    };
+    return res.status(400).json({ message: mensajes[error.code] || "El archivo no cumple las condiciones permitidas." });
   }
 
   return res.status(500).json({ message: "No se pudo procesar la solicitud." });
@@ -291,17 +295,25 @@ async function convertirWordAPdf(buffer) {
 }
 
 async function convertirConLibreOffice(entrada, carpeta, salida) {
+  const perfilLibreOffice = path.join(carpeta, "libreoffice-profile");
+  const perfilUrl = `file:///${perfilLibreOffice.replace(/\\/g, "/")}`;
   const ejecutables = [
     "soffice",
     "libreoffice",
+    process.env.LIBREOFFICE_PATH,
     "C:\\Program Files\\LibreOffice\\program\\soffice.exe",
     "C:\\Program Files (x86)\\LibreOffice\\program\\soffice.exe",
-  ];
+  ].filter(Boolean);
 
   for (const ejecutable of ejecutables) {
     try {
       await execFileAsync(ejecutable, [
         "--headless",
+        "--nologo",
+        "--nodefault",
+        "--nofirststartwizard",
+        "--nolockcheck",
+        `-env:UserInstallation=${perfilUrl}`,
         "--convert-to",
         "pdf",
         "--outdir",
@@ -391,7 +403,7 @@ function obtenerEncabezados(hoja) {
     });
 
     const disponibles = new Set(encabezados.map((item) => item.nombre));
-    if (disponibles.has("dni") && disponibles.has("curso_programa")) {
+    if (esFormatoCargaGeneral(disponibles) || esFormatoCargaCambridge(disponibles)) {
       return { encabezados, filaEncabezado: fila };
     }
   }
@@ -401,9 +413,22 @@ function obtenerEncabezados(hoja) {
 
 function validarColumnasObligatorias(encabezados) {
   const disponibles = new Set(encabezados.map((item) => item.nombre));
-  const obligatorias = ["dni", "nombres", "apellidos", "grado", "seccion", "curso_programa"];
+  const obligatorias = esFormatoCargaCambridge(disponibles) && !esFormatoCargaGeneral(disponibles)
+    ? ["dni", "alumno", "grado", "seccion", "seleccion", "nivel_cambridge"]
+    : ["dni", "nombres", "apellidos", "grado", "seccion", "curso_programa"];
   const faltantes = obligatorias.filter((columna) => !disponibles.has(columna));
   if (faltantes.length) lanzar(`Faltan columnas obligatorias: ${faltantes.join(", ")}.`);
+}
+
+function esFormatoCargaGeneral(disponibles) {
+  return disponibles.has("dni") && disponibles.has("curso_programa");
+}
+
+function esFormatoCargaCambridge(disponibles) {
+  return disponibles.has("dni") &&
+    disponibles.has("alumno") &&
+    disponibles.has("nivel_cambridge") &&
+    disponibles.has("seleccion");
 }
 
 function validarRegistros({ filas, programasPeriodo, existentes }) {
@@ -411,7 +436,8 @@ function validarRegistros({ filas, programasPeriodo, existentes }) {
 
   return filas.map((fila, index) => {
     const normalizada = normalizarFila(fila);
-    const programaDetectado = detectarProgramaPorCurso(normalizada.curso, programasPeriodo);
+    const programaDetectado = detectarProgramaPorCurso(normalizada.curso, programasPeriodo) ||
+      (normalizada.nivelCambridge ? detectarProgramaCambridge(programasPeriodo) : null);
     const errores = validarFilaCarga(normalizada, programaDetectado);
     const clave = claveAlumno(normalizada);
     const claveArchivo = programaDetectado ? `${programaDetectado.id}:${clave}` : clave;
@@ -439,14 +465,19 @@ function validarRegistros({ filas, programasPeriodo, existentes }) {
 }
 
 function normalizarFila(fila) {
+  const alumno = separarAlumnoCompleto(fila.alumno);
+  const nivelCambridge = limpiarTexto(fila.nivel_cambridge);
   return {
     codigoEstudiante: limpiarTexto(fila.codigo_estudiante),
     dni: limpiarTexto(fila.dni),
-    nombres: limpiarTexto(fila.nombres),
-    apellidos: limpiarTexto(fila.apellidos),
+    nombres: limpiarTexto(fila.nombres) || alumno.nombres,
+    apellidos: limpiarTexto(fila.apellidos) || alumno.apellidos,
+    nivelEducativo: limpiarTexto(fila.nivel_educativo),
     grado: limpiarTexto(fila.grado),
     seccion: limpiarTexto(fila.seccion).toUpperCase(),
-    curso: limpiarTexto(fila.curso_programa),
+    seleccion: limpiarTexto(fila.seleccion).toUpperCase(),
+    nivelCambridge,
+    curso: limpiarTexto(fila.curso_programa) || limpiarTexto(fila.curso) || limpiarTexto(fila.programa),
     observacion: limpiarTexto(fila.observacion),
     estadoAlumno: "Invitado",
   };
@@ -459,8 +490,12 @@ function validarFilaCarga(fila, programaDetectado) {
   if (!textoSeguro(fila.apellidos)) errores.push("Falta apellido.");
   if (!textoSeguro(fila.grado)) errores.push("Falta grado.");
   if (!textoSeguro(fila.seccion)) errores.push("Falta seccion.");
-  if (!textoSeguro(fila.curso)) errores.push("Falta curso o programa.");
-  if (fila.curso && !programaDetectado) errores.push("El programa indicado no existe o no está habilitado.");
+  if (!textoSeguro(fila.curso) && !textoSeguro(fila.nivelCambridge)) errores.push("Falta curso o nivel Cambridge.");
+  if (fila.curso && !programaDetectado) errores.push("El programa indicado no existe en el periodo seleccionado.");
+  if (!fila.curso && fila.nivelCambridge && !programaDetectado) errores.push("No se encontro un programa Cambridge para esta carga.");
+  if (programaDetectado && String(programaDetectado.estado || "Habilitado") !== "Habilitado") {
+    errores.push(`El programa ${programaDetectado.nombre || "seleccionado"} esta ${programaDetectado.estado}. Habilitelo antes de cargar alumnos.`);
+  }
   if (fila.observacion && /[<>]/.test(fila.observacion)) errores.push("Observación contiene caracteres no permitidos.");
   return errores;
 }
@@ -468,6 +503,28 @@ function validarFilaCarga(fila, programaDetectado) {
 function detectarProgramaPorCurso(curso, programas) {
   if (!curso) return null;
   return programas.find((programa) => coincideCurso(curso, programa.nombre)) || null;
+}
+
+function detectarProgramaCambridge(programas) {
+  const candidatos = programas.filter((programa) => esProgramaCambridge(programa));
+  if (candidatos.length === 1) return candidatos[0];
+  if (!candidatos.length && programas.length === 1) return programas[0];
+  return candidatos.find((programa) => String(programa.estado || "Habilitado") === "Habilitado") || null;
+}
+
+function esProgramaCambridge(programa) {
+  const texto = normalizarComparacion([
+    programa.nombre,
+    programa.categoria,
+    programa.plantilla,
+    ...(programa.plantillaVariables || []),
+  ].filter(Boolean).join(" "));
+  return /\bcambridge\b/.test(texto) ||
+    /\bcertificacion\b/.test(texto) ||
+    /\bpreparacion\b/.test(texto) ||
+    (programa.plantillaVariables || []).some((variable) =>
+      ["fecha_carta", "anio_cert", "nivel_cambridge", "ciclo_i", "ciclo_ii", "chk_a", "chk_b", "chk_c"].includes(variable)
+    );
 }
 
 function coincideCurso(curso, programa) {
@@ -512,6 +569,16 @@ function limpiarDni(valor) {
 
 function limpiarTexto(valor) {
   return String(valor ?? "").trim().replace(/[<>]/g, "");
+}
+
+function separarAlumnoCompleto(valor) {
+  const partes = limpiarTexto(valor).split(/\s+/).filter(Boolean);
+  if (!partes.length) return { nombres: "", apellidos: "" };
+  if (partes.length === 1) return { nombres: partes[0], apellidos: "" };
+  return {
+    nombres: partes.slice(0, Math.max(1, partes.length - 2)).join(" "),
+    apellidos: partes.slice(Math.max(1, partes.length - 2)).join(" "),
+  };
 }
 
 function textoSeguro(valor) {

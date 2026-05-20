@@ -90,7 +90,51 @@
 .secretaria-word-document .docx {
   margin: 0 auto 16px;
   overflow: visible !important;
+  position: relative;
   box-shadow: 0 1px 8px rgba(15, 23, 42, 0.22);
+}
+
+.secretaria-word-document .secretaria-docx-watermark {
+  position: absolute !important;
+  inset: 50% auto auto 50% !important;
+  width: min(78%, 660px) !important;
+  height: auto !important;
+  max-height: 76% !important;
+  margin: 0 !important;
+  opacity: 0.14 !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+  mix-blend-mode: multiply;
+}
+
+.secretaria-word-document svg[style*="z-index:-"],
+.secretaria-word-document svg[style*="z-index: -"] {
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  width: min(72%, 610px) !important;
+  height: auto !important;
+  max-height: 72% !important;
+  margin: 0 !important;
+  opacity: 0.12 !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+  mix-blend-mode: multiply;
+}
+
+.secretaria-word-document .secretaria-docx-watermark-holder {
+  position: static !important;
+  display: contents !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.secretaria-word-document .secretaria-docx-watermark image,
+.secretaria-word-document .secretaria-docx-watermark img {
+  opacity: 1 !important;
 }
 
 .secretaria-ficha-paper header {

@@ -13,45 +13,34 @@
   height: 100dvh;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 12px;
   padding: 20px 14px;
   border-right: 1px solid #dce7e4;
   background: #ffffff;
 }
 
 .caja-brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 6px 16px;
-  border-bottom: 1px solid #e4ece9;
-}
-
-.caja-brand > span {
-  width: 42px;
-  height: 42px;
   display: grid;
-  place-items: center;
-  border-radius: 8px;
-  color: #ffffff;
-  background: #0b4b3f;
+  justify-items: center;
+  margin: 4px 0 0;
+  padding: 0;
 }
 
-.caja-brand strong,
-.caja-brand small {
+.caja-brand-logo {
+  width: min(168px, 100%);
+  height: auto;
   display: block;
+  object-fit: contain;
+  border-radius: 8px;
 }
 
-.caja-brand strong {
-  font-size: 17px;
-  font-weight: 900;
-  color: #053f35;
-}
-
-.caja-brand small {
-  color: #667085;
+.caja-module-label {
+  margin: 0 0 8px;
+  color: #176c60;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 900;
+  text-align: center;
+  text-transform: uppercase;
 }
 
 .caja-nav {
@@ -94,7 +83,7 @@
 .caja-main {
   width: min(1180px, calc(100% - 40px));
   margin: 0 auto;
-  padding: 22px 0 42px;
+  padding: 16px 0 32px;
 }
 
 .caja-header {
@@ -102,7 +91,7 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 18px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .caja-header span {
@@ -116,7 +105,7 @@
 .caja-header h1 {
   margin: 4px 0 0;
   color: #111827;
-  font-size: 28px;
+  font-size: 27px;
   font-weight: 950;
   line-height: 1.05;
 }
@@ -192,7 +181,7 @@
 
 .caja-report-layout {
   display: grid;
-  gap: 14px;
+  gap: 10px;
 }
 
 .caja-report-grid {
@@ -202,8 +191,8 @@
 }
 
 .caja-report-grid article {
-  min-height: 84px;
-  padding: 14px 16px;
+  min-height: 72px;
+  padding: 11px 16px;
   border: 1px solid #d8e5e1;
   border-radius: 8px;
   background: #ffffff;
@@ -219,7 +208,7 @@
 
 .caja-report-grid strong {
   display: block;
-  margin: 7px 0;
+  margin: 4px 0;
   color: #101828;
   font-size: 22px;
   font-weight: 950;
@@ -229,7 +218,7 @@
   display: grid;
   grid-template-columns: minmax(190px, 1.35fr) minmax(160px, 1fr) minmax(135px, 0.8fr) minmax(135px, 0.8fr) minmax(170px, 1fr) minmax(150px, 0.9fr);
   gap: 8px;
-  padding: 10px;
+  padding: 8px 10px;
   border: 1px solid #d8e5e1;
   border-radius: 8px;
   background: #ffffff;
@@ -246,7 +235,7 @@
 .caja-report-filters input,
 .caja-report-filters select {
   width: 100%;
-  min-height: 36px;
+  min-height: 34px;
   border: 1px solid #cfded9;
   border-radius: 8px;
   padding: 0 12px;
@@ -273,7 +262,7 @@
 
 .caja-payment-workspace {
   display: grid;
-  gap: 12px;
+  gap: 10px;
   padding-top: 2px;
 }
 
@@ -286,13 +275,13 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 14px 16px;
+  padding: 12px 16px;
   border-bottom: 1px solid #e3ece9;
 }
 
 .caja-panel-header h2 {
   margin: 0;
-  font-size: 19px;
+  font-size: 18px;
   font-weight: 950;
 }
 
@@ -414,7 +403,7 @@
 
 .caja-alert {
   margin-bottom: 12px;
-  padding: 11px 12px;
+  padding: 9px 12px;
   border: 1px solid #f8c7c1;
   border-radius: 8px;
   color: #b42318;
@@ -425,16 +414,20 @@
 
 .caja-form {
   display: grid;
-  grid-template-columns: minmax(270px, 0.85fr) minmax(0, 1.45fr);
-  gap: 10px;
+  grid-template-columns: 1fr;
+  gap: 8px;
 }
 
 .caja-form.is-search-only {
-  grid-template-columns: minmax(320px, 560px);
+  grid-template-columns: 1fr;
+}
+
+.caja-form.has-payment .caja-form-block {
+  width: 100%;
 }
 
 .caja-form-block {
-  padding: 12px;
+  padding: 10px 12px;
   border: 1px solid #dce7e4;
   border-radius: 8px;
   background: #fbfdfc;
@@ -447,14 +440,14 @@
 .caja-form-title {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  margin-bottom: 8px;
+  gap: 9px;
+  margin-bottom: 7px;
 }
 
 .caja-form-title > svg {
-  width: 34px;
-  height: 34px;
-  padding: 8px;
+  width: 30px;
+  height: 30px;
+  padding: 7px;
   border-radius: 8px;
   color: #075e50;
   background: #e8f7ef;
@@ -463,12 +456,12 @@
 .caja-form-title h3 {
   margin: 0;
   color: #101828;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 950;
 }
 
 .caja-form-title p {
-  margin: 3px 0 0;
+  margin: 2px 0 0;
   color: #667085;
   font-size: 13px;
   font-weight: 700;
@@ -483,7 +476,7 @@
 .caja-search-form input,
 .caja-payment-method select {
   width: 100%;
-  min-height: 40px;
+  min-height: 38px;
   border: 1px solid #cfded9;
   border-radius: 8px;
   padding: 0 12px;
@@ -507,16 +500,16 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: 10px;
-  padding: 10px;
+  margin-top: 8px;
+  padding: 8px 10px;
   border: 1px solid #b9e4d9;
   border-radius: 8px;
   background: #f0fbf7;
 }
 
 .caja-student-card span {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   display: grid;
   place-items: center;
   border-radius: 8px;
@@ -544,22 +537,22 @@
 
 .caja-payment-summary {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px 10px;
 }
 
 .caja-readonly-field,
 .caja-payment-method {
   display: grid;
-  gap: 6px;
+  gap: 5px;
   color: #344054;
   font-size: 13px;
   font-weight: 900;
 }
 
 .caja-readonly-field {
-  min-height: 60px;
-  padding: 10px 12px;
+  min-height: 54px;
+  padding: 8px 11px;
   border: 1px solid #dce7e4;
   border-radius: 8px;
   background: #ffffff;
@@ -582,7 +575,7 @@
 }
 
 .caja-payment-method {
-  min-height: 60px;
+  min-height: 54px;
 }
 
 @media (max-width: 980px) {

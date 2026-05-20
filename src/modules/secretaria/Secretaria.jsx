@@ -10,7 +10,6 @@ import {
   IconId as IdCard,
   IconLoader2 as Loader2,
   IconLogout as LogOut,
-  IconMail as Mail,
   IconPhone as Phone,
   IconPrinter as Printer,
   IconSearch as Search,
@@ -30,7 +29,6 @@ import {
   registrarDocumentoGenerado,
 } from "./services/secretariaService";
 import {
-  validarCorreoPadre,
   validarDni,
   validarTelefono,
   validarTextoSeguro,
@@ -63,7 +61,7 @@ const formularioInicial = {
   apoderado: "",
   telefono: "",
   correo: "",
-  medioEnvio: "WhatsApp",
+  medioEnvio: "Impreso",
   tallaUniforme: "",
   observacion: "",
   aceptaCondiciones: false,
@@ -269,7 +267,7 @@ function Secretaria({ onLogout }) {
       apoderado: registroExistente?.apoderado ?? encontrado.apoderado ?? "",
       telefono: registroExistente?.telefono ?? encontrado.telefonoApoderado ?? "",
       correo: registroExistente?.correo ?? "",
-      medioEnvio: registroExistente?.medioEnvio ?? "WhatsApp",
+      medioEnvio: registroExistente?.medioEnvio ?? "Impreso",
       tallaUniforme: registroExistente?.tallaUniforme ?? "",
       observacion: registroExistente?.observacion ?? "",
     });
@@ -373,12 +371,7 @@ function Secretaria({ onLogout }) {
     }
 
     if (!validarTelefono(formulario.telefono)) {
-      mostrarMensaje("Ingrese un telefono WhatsApp valido de 9 numeros.");
-      return;
-    }
-
-    if (!validarCorreoPadre(formulario.correo)) {
-      mostrarMensaje("Ingrese un correo valido o deje el campo vacio. No se aceptan correos temporales.");
+      mostrarMensaje("Ingrese un telefono de contacto valido de 9 numeros.");
       return;
     }
 
@@ -431,8 +424,8 @@ function Secretaria({ onLogout }) {
         periodo,
         apoderado: formulario.apoderado.trim(),
         telefono: formulario.telefono,
-        correo: formulario.correo.trim(),
-        medioEnvio: formulario.medioEnvio,
+        correo: "",
+        medioEnvio: "Impreso",
         tallaUniforme: formulario.tallaUniforme,
         observacion: formulario.observacion.trim(),
         origenRegistro: estudiante.esExterno
@@ -1028,8 +1021,10 @@ function Secretaria({ onLogout }) {
                   <DatoHorario label="Clase" value={horarioResumenRegistro.clase} />
                   <DatoHorario label="Almuerzo" value={horarioResumenRegistro.almuerzo} />
                 </div>
-                <CampoLectura label="Costo referencial" value={programaParaRegistro ? `S/ ${Number(programaParaRegistro.costo).toFixed(2)}` : ""} />
-                <CampoLectura label="Cupos disponibles" value={formatearCuposSecretaria(programaParaRegistro)} />
+                <div className="secretaria-program-cost-row secretaria-field-full">
+                  <CampoLectura label="Costo referencial" value={programaParaRegistro ? `S/ ${Number(programaParaRegistro.costo).toFixed(2)}` : ""} />
+                  <CampoLectura label="Cupos disponibles" value={formatearCuposSecretaria(programaParaRegistro)} />
+                </div>
                 </div>
 
                 {periodo === "verano" ? (
@@ -1084,26 +1079,6 @@ function Secretaria({ onLogout }) {
                   </div>
                 ) : null}
 
-                <CampoTexto
-                  label="Correo opcional"
-                  icon={<Mail size={15} />}
-                  value={formulario.correo}
-                  onChange={(value) => actualizarFormulario("correo", value)}
-                  placeholder="correo@ejemplo.com"
-                />
-
-                <div className="secretaria-field">
-                  <label htmlFor="medio-envio">Medio de envio</label>
-                  <select
-                    id="medio-envio"
-                    value={formulario.medioEnvio}
-                    onChange={(event) => actualizarFormulario("medioEnvio", event.target.value)}
-                  >
-                    <option value="WhatsApp">WhatsApp</option>
-                    <option value="Correo">Correo</option>
-                    <option value="Impreso">Impreso</option>
-                  </select>
-                </div>
                 </div>
 
                 <div className="secretaria-field secretaria-field-full">

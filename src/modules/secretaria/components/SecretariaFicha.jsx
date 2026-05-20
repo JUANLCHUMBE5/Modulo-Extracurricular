@@ -58,7 +58,7 @@ function FichaAceptación({ estudiante, inscripcion, onClose }) {
       setWordPreview({ cargando: true, error: "" });
       wordPreviewRef.current.innerHTML = "";
 
-      generarComunicadoWordBlob({ estudiante, inscripcion })
+      generarComunicadoWordBlob({ estudiante, inscripcion, omitirMarcaAguaVista: true })
         .then(async (blob) => {
           if (!activo || !wordPreviewRef.current) return;
           wordPreviewRef.current.innerHTML = "";
@@ -74,6 +74,12 @@ function FichaAceptación({ estudiante, inscripcion, onClose }) {
             ignoreLastRenderedPageBreak: false,
           });
           prepararVistaDocxParaImpresion(wordPreviewRef.current);
+          requestAnimationFrame(() => {
+            if (activo) normalizarMarcasAguaDocx(wordPreviewRef.current);
+          });
+          window.setTimeout(() => {
+            if (activo) normalizarMarcasAguaDocx(wordPreviewRef.current);
+          }, 300);
           if (activo) setWordPreview({ cargando: false, error: "" });
         })
         .catch(() => {
@@ -100,14 +106,18 @@ function FichaAceptación({ estudiante, inscripcion, onClose }) {
     if (inscripcion.plantillaBase64) {
       setImprimiendoFicha(true);
       try {
-        const word = await generarComunicadoWordBlob({ estudiante, inscripcion });
-        const pdf = await convertirWordOriginalAPdf(word);
-        imprimirPdfBlob(pdf);
+        const word = await generarComunicadoWordBlob({ estudiante, inscripcion, omitirMarcaAguaVista: true });
+        try {
+          const pdf = await convertirWordOriginalAPdf(word);
+          imprimirPdfBlob(pdf);
+        } catch {
+          await imprimirWordRenderizado(word);
+        }
       } catch (err) {
         setWordPreview((actual) => ({
           ...actual,
           cargando: false,
-          error: err.message || "No se pudo convertir el Word original a PDF.",
+          error: err.message || "No se pudo preparar la impresión.",
         }));
       } finally {
         setImprimiendoFicha(false);
@@ -217,9 +227,13 @@ function FichaBloque({ titulo, items }) {
 
 async function imprimirInscripcionDirecta(estudiante, inscripcion) {
   if (inscripcion.plantillaBase64) {
-    const word = await generarComunicadoWordBlob({ estudiante, inscripcion });
-    const pdf = await convertirWordOriginalAPdf(word);
-    imprimirPdfBlob(pdf);
+    const word = await generarComunicadoWordBlob({ estudiante, inscripcion, omitirMarcaAguaVista: true });
+    try {
+      const pdf = await convertirWordOriginalAPdf(word);
+      imprimirPdfBlob(pdf);
+    } catch {
+      await imprimirWordRenderizado(word);
+    }
     return;
   }
 
@@ -326,7 +340,7 @@ function crearLineasInvitacionDefault(ficha) {
     `El programa se desarrollará en el horario ${ficha.programa.horario}, bajo la responsabilidad de ${ficha.programa.responsable}.`,
     `El costo registrado es ${ficha.programa.costo}, con modalidad de cobro ${ficha.programa.modalidadCobro}.`,
     `Requisitos: ${ficha.programa.requisitos}. Uniforme requerido: ${ficha.programa.uniforme}.`,
-    `Para la comunicación se utilizará el medio ${ficha.apoderado.medioEnvio}, con celular ${ficha.apoderado.telefono}.`,
+    `Telefono de contacto del apoderado: ${ficha.apoderado.telefono}.`,
     `La inscripción queda registrada como ${ficha.programa.estado} y el pago queda ${ficha.programa.estadoPago}.`,
     ficha.observacion !== "Sin observación" ? `Observación: ${ficha.observacion}.` : "",
   ].filter(Boolean);
@@ -433,7 +447,7 @@ async function descargarComunicadoWord({ estudiante, inscripcion }) {
   descargarBlob(blob, `comunicado-${normalizarNombreArchivo(inscripcion.nombresEstudiante)}-${normalizarNombreArchivo(inscripcion.programa)}.docx`);
 }
 
-async function generarComunicadoWordBlob({ estudiante, inscripcion }) {
+async function generarComunicadoWordBlob({ estudiante, inscripcion, omitirMarcaAguaVista = false }) {
   if (!inscripcion.plantillaBase64) {
     throw new Error("El programa no tiene una plantilla Word cargada por Coordinación.");
   }
@@ -448,13 +462,35 @@ async function generarComunicadoWordBlob({ estudiante, inscripcion }) {
       nullGetter: () => "",
     });
     doc.render(datos);
+    if (omitirMarcaAguaVista) {
+      removerMarcasAguaWord(doc.getZip());
+    }
     return doc.getZip().generate({
       type: "blob",
       mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     });
   } catch {
-    return generarComunicadoWordBlobLegacy({ datos, inscripcion });
+    return generarComunicadoWordBlobLegacy({ datos, inscripcion, omitirMarcaAguaVista });
   }
+}
+
+function removerMarcasAguaWord(zip) {
+  Object.keys(zip.files)
+    .filter((name) => /^word\/(document|header|footer)\d*\.xml$/i.test(name))
+    .forEach((name) => {
+      const file = zip.file(name);
+      if (!file) return;
+      const xml = file.asText();
+      const limpio = quitarBloquesMarcaAguaWord(xml);
+      if (limpio !== xml) zip.file(name, limpio);
+    });
+}
+
+function quitarBloquesMarcaAguaWord(xml) {
+  return String(xml || "")
+    .replace(/<w:pict\b[^>]*>[\s\S]*?WordPictureWatermark[\s\S]*?<\/w:pict>/gi, "")
+    .replace(/<w:drawing\b[^>]*>[\s\S]*?WordPictureWatermark[\s\S]*?<\/w:drawing>/gi, "")
+    .replace(/<v:shape\b(?=[^>]*WordPictureWatermark)[\s\S]*?<\/v:shape>/gi, "");
 }
 
 function limpiarPaginasDocxVacias(contenedor) {
@@ -484,19 +520,15 @@ function prepararVistaDocxParaImpresion(contenedor) {
     .filter((pagina) => !paginasConContenido.includes(pagina))
     .forEach((pagina) => pagina.remove());
 
-  const principal = paginasConContenido[0];
-  if (!principal) return;
-
-  const destino = principal.querySelector("article") || principal;
-  paginasConContenido.slice(1).forEach((pagina) => {
-    const origen = pagina.querySelector("article") || pagina;
-    Array.from(origen.childNodes).forEach((nodo) => destino.appendChild(nodo));
-    pagina.remove();
+  paginasConContenido.forEach((pagina) => {
+    const contenido = pagina.querySelector("article") || pagina;
+    pagina.style.overflow = "visible";
+    pagina.style.minHeight = pagina.style.minHeight || "297mm";
+    pagina.style.position = "relative";
+    contenido.style.position = "relative";
   });
 
-  principal.style.overflow = "visible";
-  principal.style.minHeight = principal.style.minHeight || "297mm";
-  ajustarDocxAUnaPagina(principal, destino);
+  normalizarMarcasAguaDocx(contenedor);
 }
 
 function ajustarDocxAUnaPagina(pagina, contenido) {
@@ -512,6 +544,83 @@ function ajustarDocxAUnaPagina(pagina, contenido) {
   pagina.style.overflow = "hidden";
 }
 
+function normalizarMarcasAguaDocx(contenedor) {
+  const paginas = Array.from(contenedor?.querySelectorAll(".docx") || []);
+  paginas.forEach((pagina) => {
+    const rectPagina = pagina.getBoundingClientRect();
+    const anchoPagina = rectPagina.width || leerMedidaCss(pagina, "width") || 794;
+    const altoPagina = rectPagina.height || leerMedidaCss(pagina, "height") || 1123;
+    const visuales = Array.from(pagina.querySelectorAll("img, svg"));
+
+    visuales.forEach((visual) => {
+      const rect = visual.getBoundingClientRect();
+      const ancho = rect.width || leerMedidaCss(visual, "width");
+      const alto = rect.height || leerMedidaCss(visual, "height");
+      const estilo = visual.getAttribute("style") || "";
+      const pareceMarcaDeAguaWord = /z-index\s*:\s*-\d+/i.test(estilo);
+
+      if (!pareceMarcaDeAguaWord && (ancho < anchoPagina * 0.45 || alto < altoPagina * 0.28)) return;
+
+      const contenedorMarca = obtenerContenedorMarcaAgua(visual, pagina);
+      visual.classList.add("secretaria-docx-watermark");
+      visual.setAttribute("aria-hidden", "true");
+      if (contenedorMarca !== visual) {
+        contenedorMarca.classList.add("secretaria-docx-watermark-holder");
+        contenedorMarca.setAttribute("aria-hidden", "true");
+      }
+    });
+
+    const contenido = pagina.querySelector("article") || pagina;
+    Array.from(contenido.children).forEach((hijo) => {
+      if (
+        hijo.classList.contains("secretaria-docx-watermark") ||
+        hijo.classList.contains("secretaria-docx-watermark-holder")
+      ) return;
+      hijo.style.position = hijo.style.position || "relative";
+      hijo.style.zIndex = hijo.style.zIndex || "1";
+    });
+  });
+}
+
+function obtenerContenedorMarcaAgua(visual, pagina) {
+  let actual = visual;
+  while (actual.parentElement && actual.parentElement !== pagina) {
+    const padre = actual.parentElement;
+    if (padre.classList.contains("docx") || padre.tagName === "ARTICLE" || padre.tagName === "SECTION") break;
+    const texto = padre.textContent.replace(/\s+/g, "").trim();
+    const visuales = padre.querySelectorAll("img, svg, canvas, picture").length;
+    if (texto || visuales > 1) break;
+    actual = padre;
+  }
+  return actual;
+}
+
+function leerMedidaCss(elemento, propiedad) {
+  const estilos = [
+    elemento?.style?.getPropertyValue(propiedad),
+    elemento?.getAttribute?.("style")?.match(new RegExp(`${propiedad}\\s*:\\s*([^;]+)`, "i"))?.[1],
+  ].filter(Boolean);
+
+  for (const valor of estilos) {
+    const medida = convertirMedidaCssAPx(valor);
+    if (medida) return medida;
+  }
+  return 0;
+}
+
+function convertirMedidaCssAPx(valor) {
+  const match = String(valor || "").trim().match(/^(-?\d+(?:\.\d+)?)(px|pt|in|cm|mm)?$/i);
+  if (!match) return 0;
+  const numero = Number(match[1]);
+  const unidad = (match[2] || "px").toLowerCase();
+  if (!Number.isFinite(numero)) return 0;
+  if (unidad === "pt") return numero * (96 / 72);
+  if (unidad === "in") return numero * 96;
+  if (unidad === "cm") return numero * (96 / 2.54);
+  if (unidad === "mm") return numero * (96 / 25.4);
+  return numero;
+}
+
 function paginaTieneContenidoDocx(pagina) {
   const texto = pagina.textContent.replace(/\s+/g, "").trim();
   const visuales = Array.from(pagina.querySelectorAll("img, svg, canvas, picture"));
@@ -522,7 +631,7 @@ function paginaTieneContenidoDocx(pagina) {
   return texto.length > 2 || tablasConContenido || visuales.length > 0;
 }
 
-async function generarComunicadoWordBlobLegacy({ datos, inscripcion }) {
+async function generarComunicadoWordBlobLegacy({ datos, inscripcion, omitirMarcaAguaVista = false }) {
   const zip = await JSZip.loadAsync(base64ToArrayBuffer(inscripcion.plantillaBase64));
   const archivosXml = Object.values(zip.files).filter((file) =>
     /^word\/(document|header|footer)\d*\.xml$/i.test(file.name)
@@ -530,7 +639,8 @@ async function generarComunicadoWordBlobLegacy({ datos, inscripcion }) {
 
   await Promise.all(archivosXml.map(async (file) => {
     const xml = await file.async("text");
-    zip.file(file.name, reemplazarVariablesXml(xml, datos));
+    const reemplazado = reemplazarVariablesXml(xml, datos);
+    zip.file(file.name, omitirMarcaAguaVista ? quitarBloquesMarcaAguaWord(reemplazado) : reemplazado);
   }));
 
   return await zip.generateAsync({
@@ -582,15 +692,23 @@ function crearMapaVariablesDocumento(estudiante, inscripcion) {
   const dias = horarioDocumento.dia || extraerDiasHorario(horario);
   const horas = horarioDocumento.clase || extraerHorasHorario(horario);
   const almuerzo = horarioDocumento.almuerzo || extraerAlmuerzoHorario(horario);
+  const aula = horarioDocumento.aula || inscripcion.aula || "";
+  const horarioCambridge = [dias, horas].filter(Boolean).join(" ");
   const niveles = horarioDocumento.niveles;
   const pago = inscripcion.modalidadCobro || "";
+  const anioActual = String(new Date().getFullYear());
   return {
     N_COM: inscripcion.id || "",
     TITULO: `Comunicado ${programa}`.trim(),
     FECHA: fechaActual,
+    FECHA_CARTA: fechaActual,
+    ANIO_CARTA: anioActual,
+    ANIO_CERT: anioActual,
     AREA: "Coordinación de Actividades Extracurriculares",
     PROG: programa,
     CICLO: estudiante?.periodo || obtenerNombrePeriodo(inscripcion.periodo),
+    CICLO_I: fechaInicio || rangoFechas,
+    CICLO_II: fechaFin || rangoFechas,
     INI: fechaInicio,
     FIN: fechaFin,
     RANGO: rangoFechas,
@@ -607,7 +725,14 @@ function crearMapaVariablesDocumento(estudiante, inscripcion) {
     COSTO: costo,
     HOR_ALM: almuerzo || "",
     ALUMNO: alumno,
+    ALU: alumno,
     GR_SEC: gradoSeccion,
+    NIV: gradoSeccion || grado,
+    AUL: aula,
+    HORARIO: horarioCambridge || horario,
+    CHK_A: "",
+    CHK_B: "",
+    CHK_C: "",
     APOD: apoderado,
     CEL: telefono,
     num: inscripcion.id || "",
@@ -809,6 +934,7 @@ function crearHorarioDocumento(inscripcion, estudiante) {
       dia: extraerDiasHorario(inscripcion?.horario),
       almuerzo: extraerAlmuerzoHorario(inscripcion?.horario),
       clase: extraerHorasHorario(inscripcion?.horario),
+      aula: inscripcion?.aula || "",
       niveles: nivelesTurno,
     };
   }
@@ -817,6 +943,7 @@ function crearHorarioDocumento(inscripcion, estudiante) {
     dia: grupo.dia || "",
     almuerzo: formatearRangoHoraDocumento(grupo.almuerzoInicio, grupo.almuerzoFin),
     clase: formatearRangoHoraDocumento(grupo.horaInicio, grupo.horaFin),
+    aula: grupo.aula || "",
     niveles: nivelesTurno,
   };
 }
@@ -1025,6 +1152,15 @@ async function imprimirWordRenderizado(wordBlob) {
       ignoreLastRenderedPageBreak: false,
     });
     prepararVistaDocxParaImpresion(contenedor);
+    await new Promise((resolve) => {
+      requestAnimationFrame(() => {
+        normalizarMarcasAguaDocx(contenedor);
+        window.setTimeout(() => {
+          normalizarMarcasAguaDocx(contenedor);
+          resolve();
+        }, 300);
+      });
+    });
     await imprimirHtmlRenderizado(contenedor.innerHTML);
   } finally {
     contenedor.remove();
@@ -1133,8 +1269,6 @@ function crearHtmlImpresionFicha(ficha) {
     ["Datos del padre / apoderado", [
       ["Nombre del padre o apoderado", ficha.apoderado.nombre],
       ["Teléfono", ficha.apoderado.telefono],
-      ["Correo", ficha.apoderado.correo],
-      ["Medio de envio", ficha.apoderado.medioEnvio],
     ]],
   ];
 
@@ -1231,8 +1365,6 @@ function descargarFichaPdf(ficha) {
   y = agregarBloquePdf(doc, "Datos del padre / apoderado", [
     ["Nombre del padre o apoderado", ficha.apoderado.nombre],
     ["Teléfono", ficha.apoderado.telefono],
-    ["Correo", ficha.apoderado.correo],
-    ["Medio de envio", ficha.apoderado.medioEnvio],
   ], margen, y, anchoTexto);
 
   doc.setFont("helvetica", "bold");

@@ -905,8 +905,22 @@
   min-height: 44px;
 }
 
+.secretaria-program-cost-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
 .secretaria-registration-contact {
   margin-top: 2px;
+}
+
+.secretaria-registration-modal .secretaria-registration-contact {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.secretaria-registration-modal .secretaria-registration-contact .secretaria-field {
+  grid-column: auto;
 }
 
 .secretaria-schedule-summary {

@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { ActionIcon, Badge, Button, Group, Modal, Select, Table, Tooltip } from "@mantine/core";
 import { toast } from "sonner";
 import {
-  IconCash as Cash,
   IconChartBar as ChartBar,
   IconCheck as Check,
   IconCircleCheck as CheckCircle,
@@ -59,6 +58,8 @@ const tiposReporte = [
   { value: "inscripciones", label: "Inscripciones registradas" },
   { value: "registro_web", label: "Registro por web / Padres" },
 ];
+
+const LOGO_COLEGIO_SRC = "/assets/padres/logo.png.jpg";
 
 function formatearSoles(valor) {
   return `S/ ${Number(valor || 0).toFixed(2)}`;
@@ -156,7 +157,6 @@ function CajaFields({
             <Search size={18} />
             <div>
               <h3>Buscar inscripción</h3>
-              <p>DNI del estudiante registrado en Secretaría o Padres.</p>
             </div>
           </div>
           <form className="caja-search-form" onSubmit={onBuscar}>
@@ -717,13 +717,10 @@ export default function Caja({ onLogout }) {
   return (
     <main className="caja-page">
       <aside className="caja-sidebar">
-        <div className="caja-brand">
-          <span><Cash size={22} /></span>
-          <div>
-            <strong>Caja</strong>
-            <small>Colegio San Rafael</small>
-          </div>
+        <div className="caja-brand" aria-label="Colegio San Rafael">
+          <img className="caja-brand-logo" src={LOGO_COLEGIO_SRC} alt="Colegio San Rafael" />
         </div>
+        <p className="caja-module-label">Modulo Caja</p>
         <nav className="caja-nav" aria-label="Modulo de caja">
           <button className={vista === "pagos" ? "is-active" : ""} onClick={() => setVista("pagos")} type="button">
             <Receipt size={17} /> Realizar pago
@@ -740,8 +737,7 @@ export default function Caja({ onLogout }) {
       <section className="caja-main">
         <header className="caja-header">
           <div>
-            <span>{vista === "pagos" ? "Gestion de pagos" : "Control y reporte"}</span>
-            <h1>{vista === "pagos" ? "Realizar pago" : "Reporte de pagos"}</h1>
+            <h1>{vista === "pagos" ? "Gestion de pagos" : "Reporte de pagos"}</h1>
           </div>
           <div className="caja-header-actions">
             <Select

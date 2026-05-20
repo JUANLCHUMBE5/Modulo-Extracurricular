@@ -187,7 +187,7 @@ export async function registrarInscripcion(payload) {
       apoderado: payload.apoderado,
       telefonoApoderado: payload.telefono,
       correoApoderado: payload.correo || "",
-      medioEnvio: payload.medioEnvio || "WhatsApp",
+      medioEnvio: payload.medioEnvio || "Impreso",
       colegioProcedencia: payload.colegioProcedencia || "",
       periodo: "Ciclo verano",
       origenRegistro: "Secretaria - alumno externo verano",

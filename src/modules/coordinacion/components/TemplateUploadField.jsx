@@ -21,6 +21,9 @@ function TemplateUploadField({
   const plantillasDisponibles = programas.filter((programa) =>
     programa.id !== form.id && programa.plantilla && programa.plantillaBase64 && programa.plantillaValidada
   );
+  const variablesVisibles = form.plantillaValidada
+    ? variablesPlantillaRequeridas.filter((variable) => form.plantillaVariables.includes(variable.id))
+    : variablesPlantillaRequeridas;
 
   function aplicarPlantillaExistente() {
     if (!programaPlantilla) return;
@@ -89,7 +92,7 @@ function TemplateUploadField({
       ) : null}
       {form.plantilla && !modoDocumentos ? (
         <div className="coord-template-vars">
-          {variablesPlantillaRequeridas.map((variable) => (
+          {variablesVisibles.map((variable) => (
             <span
               className={`coord-template-var ${form.plantillaVariables.includes(variable.id) ? "is-ok" : ""}`}
               key={variable.id}

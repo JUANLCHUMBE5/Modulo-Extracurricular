@@ -16,9 +16,7 @@ import {
   IconChevronDown as ChevronDown,
   IconEye as Eye,
   IconEyeOff as EyeOff,
-  IconSettings as Settings,
   IconUserPlus as UserPlus,
-  IconActivity as Activity,
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import {
@@ -47,9 +45,11 @@ const roles = [
   "Direccion",
 ];
 
+const LOGO_COLEGIO_SRC = "/assets/padres/logo.png.jpg";
 
 
-// ── Stat Card ──────────────────────────────────────────────────────────────
+
+// â”€â”€ Stat Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const StatCard = ({ label, value, icon: Icon, delay = 0 }) => (
   <div className="adm-stat-card" style={{ animationDelay: `${delay}ms` }}>
     <div className="adm-stat-icon"><Icon size={20} /></div>
@@ -61,7 +61,7 @@ const StatCard = ({ label, value, icon: Icon, delay = 0 }) => (
   </div>
 );
 
-// ── Rol Badge ──────────────────────────────────────────────────────────────
+// â”€â”€ Rol Badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const RolBadge = ({ rol }) => (
   <span className="adm-rol-badge" data-rol={rol}>
     <span className="adm-rol-dot" />
@@ -69,7 +69,7 @@ const RolBadge = ({ rol }) => (
   </span>
 );
 
-// ── Estado Badge ───────────────────────────────────────────────────────────
+// â”€â”€ Estado Badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const EstadoBadge = ({ estado }) => (
   <span className="adm-estado-badge" data-estado={estado}>
     <span className="adm-estado-dot" />
@@ -77,13 +77,13 @@ const EstadoBadge = ({ estado }) => (
   </span>
 );
 
-// ── Avatar ─────────────────────────────────────────────────────────────────
+// â”€â”€ Avatar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const Avatar = ({ nombre = "" }) => {
   const initials = nombre.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
   return <div className="adm-avatar">{initials || "?"}</div>;
 };
 
-// ── User Row ───────────────────────────────────────────────────────────────
+// â”€â”€ User Row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const UserRow = ({ u, onEditar, onCambiarEstado, onResetear, visible }) => {
   return (
     <tr className={`adm-user-row ${visible ? "adm-row-visible" : ""}`}>
@@ -110,7 +110,7 @@ const UserRow = ({ u, onEditar, onCambiarEstado, onResetear, visible }) => {
           >
             {u.estado === "Activo" ? <UserOff size={15} /> : <UserCheck size={15} />}
           </button>
-          <button className="adm-btn-icon adm-btn-reset" onClick={() => onResetear(u)} title="Reset contraseña">
+          <button className="adm-btn-icon adm-btn-reset" onClick={() => onResetear(u)} title="Reset contrasena">
             <Key size={15} />
           </button>
         </div>
@@ -119,13 +119,13 @@ const UserRow = ({ u, onEditar, onCambiarEstado, onResetear, visible }) => {
   );
 };
 
-// ── Tabla ──────────────────────────────────────────────────────────────────
+// â”€â”€ Tabla â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const TablaUsuarios = ({ usuarios, cargando, onEditar, onCambiarEstado, onResetear }) => {
   if (cargando) {
     return (
       <div className="adm-loading">
         <div className="adm-spinner" />
-        <p>Cargando usuarios…</p>
+        <p>Cargando usuarios...</p>
       </div>
     );
   }
@@ -134,7 +134,7 @@ const TablaUsuarios = ({ usuarios, cargando, onEditar, onCambiarEstado, onResete
       <div className="adm-empty">
         <div className="adm-empty-icon"><Users size={32} /></div>
         <p>No se encontraron usuarios</p>
-        <span>Intenta cambiar los filtros de búsqueda</span>
+        <span>Intenta cambiar los filtros de busqueda</span>
       </div>
     );
   }
@@ -166,7 +166,7 @@ const TablaUsuarios = ({ usuarios, cargando, onEditar, onCambiarEstado, onResete
   );
 };
 
-// ── Modal ──────────────────────────────────────────────────────────────────
+// â”€â”€ Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const ModalUsuario = ({ show, modoEditar, form, setForm, guardar, guardando, cerrar }) => {
   const [showPass, setShowPass] = useState(false);
   if (!show) return null;
@@ -182,7 +182,7 @@ const ModalUsuario = ({ show, modoEditar, form, setForm, guardar, guardando, cer
           </div>
           <div>
             <h2>{modoEditar ? "Editar usuario" : "Nuevo usuario"}</h2>
-            <p>Complete la información del personal</p>
+            <p>Complete la informacion del personal</p>
           </div>
           <button className="adm-modal-close" onClick={cerrar}><X size={18} /></button>
         </div>
@@ -196,7 +196,7 @@ const ModalUsuario = ({ show, modoEditar, form, setForm, guardar, guardando, cer
               <input
                 value={form.nombre}
                 onChange={e => actualizar("nombre", e.target.value)}
-                placeholder="Ej: Juan Pérez Gómez"
+                  placeholder="Ej: Juan Perez Gomez"
               />
             </div>
 
@@ -238,14 +238,14 @@ const ModalUsuario = ({ show, modoEditar, form, setForm, guardar, guardando, cer
 
             <div className="adm-mfield">
               <label>
-                {modoEditar ? "Nueva contraseña (vacío = sin cambio)" : "Contraseña *"}
+                {modoEditar ? "Nueva contrasena (vacio = sin cambio)" : "Contrasena *"}
               </label>
               <div className="adm-pass-wrap">
                 <input
                   type={showPass ? "text" : "password"}
                   value={form.contrasena}
                   onChange={e => actualizar("contrasena", e.target.value)}
-                  placeholder="••••••••"
+                  placeholder="********"
                   autoComplete="new-password"
                 />
                 <button type="button" className="adm-pass-toggle" onClick={() => setShowPass(s => !s)}>
@@ -261,7 +261,7 @@ const ModalUsuario = ({ show, modoEditar, form, setForm, guardar, guardando, cer
             <button type="button" className="adm-btn-cancel" onClick={cerrar}>Cancelar</button>
             <button type="submit" className="adm-btn-save" disabled={guardando}>
               {guardando
-                ? <><Loader2 size={16} className="adm-spin-icon" /> Guardando…</>
+                ? <><Loader2 size={16} className="adm-spin-icon" /> Guardando...</>
                 : <><CheckCircle2 size={16} /> {modoEditar ? "Actualizar" : "Crear usuario"}</>
               }
             </button>
@@ -272,7 +272,7 @@ const ModalUsuario = ({ show, modoEditar, form, setForm, guardar, guardando, cer
   );
 };
 
-// ── Componente Principal ───────────────────────────────────────────────────
+// â”€â”€ Componente Principal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function Administrador({ onLogout }) {
   const [usuarios, setUsuarios] = useState([]);
   const [busqueda, setBusqueda] = useState("");
@@ -288,7 +288,7 @@ export default function Administrador({ onLogout }) {
     if (type === "success") {
       toast.success("Listo", { description: message });
     } else {
-      toast.error("Atención", { description: message });
+      toast.error("Atencion", { description: message });
     }
   };
 
@@ -321,7 +321,7 @@ export default function Administrador({ onLogout }) {
     e.preventDefault();
     if (!form.nombre.trim()) return notify("El nombre completo es obligatorio.");
     if (!form.usuario.trim()) return notify("El nombre de usuario es obligatorio.");
-    if (!modal.editar && !form.contrasena.trim()) return notify("La contraseña es obligatoria.");
+    if (!modal.editar && !form.contrasena.trim()) return notify("La contrasena es obligatoria.");
 
     setModal(m => ({ ...m, guardando: true }));
     try {
@@ -352,61 +352,31 @@ export default function Administrador({ onLogout }) {
   const resetear = async (u) => {
     try {
       await resetearContrasenaUsuario(u.id);
-      notify(`Contraseña de @${u.usuario} reiniciada a 123456.`, "success");
+      notify(`Contrasena de @${u.usuario} reiniciada a 123456.`, "success");
     } catch (err) { notify(err.message); }
   };
 
   return (
     <div className="adm-root">
-      {/* Fondo animado */}
-      <div className="adm-bg">
-        <div className="adm-bg-orb adm-orb1" />
-        <div className="adm-bg-orb adm-orb2" />
-        <div className="adm-bg-orb adm-orb3" />
-      </div>
-
       {/* Sidebar */}
       <aside className="adm-sidebar">
-        <div className="adm-brand">
-          <div className="adm-brand-logo">SR</div>
-          <div>
-            <strong>San Rafael</strong>
-            <span>Sistema Extracurricular</span>
-          </div>
+        <div className="adm-brand" aria-label="Colegio San Rafael">
+          <img className="adm-brand-logo" src={LOGO_COLEGIO_SRC} alt="Colegio San Rafael" />
         </div>
+        <p className="adm-module-label">Modulo Administrador</p>
 
         <nav className="adm-nav">
-          <p className="adm-nav-section">Panel</p>
           <button className="adm-nav-item adm-nav-active">
-            <ShieldLock size={18} />
-            <span>Administrador</span>
-            <span className="adm-nav-badge">{usuarios.length}</span>
-          </button>
-          <button className="adm-nav-item">
             <Users size={18} />
-            <span>Usuarios</span>
-          </button>
-          <button className="adm-nav-item">
-            <Activity size={18} />
-            <span>Actividad</span>
-          </button>
-          <button className="adm-nav-item">
-            <Settings size={18} />
-            <span>Configuración</span>
+            <span>Usuarios y accesos</span>
+            <span className="adm-nav-badge">{usuarios.length}</span>
           </button>
         </nav>
 
         <div className="adm-sidebar-footer">
-          <div className="adm-user-info">
-            <div className="adm-user-avatar">A</div>
-            <div>
-              <p>Administrador</p>
-              <span>Sistema</span>
-            </div>
-          </div>
           <button className="adm-logout-btn" onClick={onLogout}>
             <LogOut size={16} />
-            Salir
+            Cerrar sesion
           </button>
         </div>
       </aside>
@@ -417,13 +387,9 @@ export default function Administrador({ onLogout }) {
         <header className="adm-topbar">
           <div>
             <p className="adm-topbar-sub">Panel de control</p>
-            <h1>Gestión de Usuarios y Accesos</h1>
+            <h1>Administracion de usuarios</h1>
           </div>
           <div className="adm-topbar-actions">
-            <button className="adm-logout-btn" onClick={onLogout}>
-              <LogOut size={16} />
-              Salir
-            </button>
             <button className="adm-new-btn" onClick={() => abrirModal()}>
               <Plus size={18} />
               Nuevo usuario
@@ -436,7 +402,7 @@ export default function Administrador({ onLogout }) {
           <StatCard label="Total usuarios" value={usuarios.length} icon={Users}     delay={0}   />
           <StatCard label="Activos"        value={totalActivos}   icon={UserCheck}  delay={60}  />
           <StatCard label="Inactivos"      value={totalInactivos} icon={UserOff}    delay={120} />
-          <StatCard label="Roles únicos"   value={totalRoles}     icon={ShieldLock} delay={180} />
+          <StatCard label="Roles unicos"   value={totalRoles}     icon={ShieldLock} delay={180} />
         </section>
 
         {/* Tabla card */}
@@ -456,7 +422,7 @@ export default function Administrador({ onLogout }) {
             <div className="adm-search-box">
               <Search size={16} />
               <input
-                placeholder="Buscar por nombre o usuario…"
+                placeholder="Buscar por nombre o usuario..."
                 value={busqueda}
                 onChange={e => setBusqueda(e.target.value)}
               />

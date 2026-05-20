@@ -255,12 +255,14 @@ export async function previsualizarCargaAlumnos({ periodo, archivoNombre, archiv
   const formData = new FormData();
   formData.append("periodo", periodo);
   formData.append("archivo", archivo);
-  formData.append("programas", JSON.stringify(apiDb.programas));
+  formData.append("programas", JSON.stringify(prepararProgramasParaPreview(apiDb.programas)));
   formData.append("existentes", JSON.stringify(apiDb.invitadosPorPrograma));
 
   const response = await fetch(`${obtenerApiBase()}/api/coordinacion/cargas/preview`, {
     method: "POST",
     body: formData,
+  }).catch(() => {
+    throw new Error("No se pudo conectar con el servidor de Excel. Verifique que la API este ejecutandose con npm.cmd run api.");
   });
 
   const data = await response.json().catch(() => ({}));
@@ -269,6 +271,18 @@ export async function previsualizarCargaAlumnos({ periodo, archivoNombre, archiv
   }
 
   return data;
+}
+
+function prepararProgramasParaPreview(programas = []) {
+  return programas.map((programa) => ({
+    id: programa.id,
+    nombre: programa.nombre,
+    categoria: programa.categoria,
+    periodo: programa.periodo,
+    estado: programa.estado,
+    plantilla: programa.plantilla,
+    plantillaVariables: programa.plantillaVariables || [],
+  }));
 }
 
 export async function previsualizarCargaAlumnosMasiva({ periodo, archivos, onProgress }) {
@@ -372,6 +386,9 @@ export async function confirmarCargaAlumnos(preview) {
         nombres: `${item.nombres} ${item.apellidos}`.trim(),
         grado: item.grado,
         seccion: item.seccion,
+        nivelEducativo: item.nivelEducativo || "",
+        seleccion: item.seleccion || "",
+        nivelCambridge: item.nivelCambridge || "",
         periodo: normalizarPeriodo(preview.periodo),
         telefonoApoderado: item.telefono,
         correo: item.correo,
