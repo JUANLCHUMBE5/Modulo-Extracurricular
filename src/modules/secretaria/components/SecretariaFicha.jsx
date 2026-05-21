@@ -521,21 +521,27 @@ function prepararVistaDocxParaImpresion(contenedor) {
 
   paginasConContenido.forEach((pagina) => {
     const contenido = pagina.querySelector("article") || pagina;
+    pagina.style.height = pagina.style.height || "297mm";
     pagina.style.overflow = "visible";
     pagina.style.minHeight = pagina.style.minHeight || "297mm";
     pagina.style.position = "relative";
     contenido.style.position = "relative";
+    ajustarDocxAUnaPagina(pagina, contenido);
   });
 
   normalizarMarcasAguaDocx(contenedor);
 }
 
 function ajustarDocxAUnaPagina(pagina, contenido) {
+  contenido.style.transform = "";
+  contenido.style.transformOrigin = "";
+  contenido.style.width = "";
+
   const altoPagina = pagina.getBoundingClientRect().height || 1122;
-  const altoContenido = contenido.scrollHeight || pagina.scrollHeight;
+  const altoContenido = Math.max(contenido.scrollHeight || 0, pagina.scrollHeight || 0);
   if (!altoPagina || !altoContenido || altoContenido <= altoPagina) return;
 
-  const escala = Math.max(0.78, Math.min(1, (altoPagina - 12) / altoContenido));
+  const escala = Math.max(0.68, Math.min(1, (altoPagina - 12) / altoContenido));
   contenido.style.transform = `scale(${escala})`;
   contenido.style.transformOrigin = "top left";
   contenido.style.width = `${100 / escala}%`;
@@ -1162,6 +1168,7 @@ async function imprimirWordRenderizado(wordBlob) {
       requestAnimationFrame(() => {
         normalizarMarcasAguaDocx(contenedor);
         window.setTimeout(() => {
+          prepararVistaDocxParaImpresion(contenedor);
           normalizarMarcasAguaDocx(contenedor);
           resolve();
         }, 300);
@@ -1216,6 +1223,9 @@ function imprimirHtmlRenderizado(html) {
             .secretaria-word-print-root .docx {
               margin: 0 auto !important;
               box-shadow: none !important;
+              height: 297mm !important;
+              min-height: 297mm !important;
+              overflow: hidden !important;
             }
           </style>
         </head>
