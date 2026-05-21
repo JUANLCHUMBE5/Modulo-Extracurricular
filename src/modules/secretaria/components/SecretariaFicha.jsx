@@ -106,12 +106,17 @@ function FichaAceptación({ estudiante, inscripcion, onClose }) {
     if (inscripcion.plantillaBase64) {
       setImprimiendoFicha(true);
       try {
-        const word = await generarComunicadoWordBlob({ estudiante, inscripcion, omitirMarcaAguaVista: true });
-        try {
-          const pdf = await convertirWordOriginalAPdf(word);
-          imprimirPdfBlob(pdf);
-        } catch {
-          await imprimirWordRenderizado(word);
+        if (wordPreviewRef.current?.innerHTML && !wordPreview.cargando) {
+          prepararVistaDocxParaImpresion(wordPreviewRef.current);
+          await imprimirHtmlRenderizado(wordPreviewRef.current.innerHTML);
+        } else {
+          const word = await generarComunicadoWordBlob({ estudiante, inscripcion, omitirMarcaAguaVista: true });
+          try {
+            const pdf = await convertirWordOriginalAPdf(word);
+            imprimirPdfBlob(pdf);
+          } catch {
+            await imprimirWordRenderizado(word);
+          }
         }
       } catch (err) {
         setWordPreview((actual) => ({
@@ -1130,6 +1135,11 @@ async function convertirWordOriginalAPdf(wordBlob) {
     throw new Error(data.message || "No se pudo convertir el Word original a PDF.");
   }
 
+  const contentType = response.headers.get("content-type") || "";
+  if (!contentType.includes("application/pdf")) {
+    throw new Error("El convertidor no devolvió un PDF válido.");
+  }
+
   return await response.blob();
 }
 
@@ -1236,6 +1246,11 @@ function imprimirHtmlRenderizado(html) {
               padding: 0 !important;
               background: #ffffff !important;
               box-shadow: none !important;
+              height: 297mm !important;
+              min-height: 297mm !important;
+              overflow: hidden !important;
+              break-after: avoid !important;
+              page-break-after: avoid !important;
             }
             .secretaria-word-print-root .docx {
               margin: 0 auto !important;
@@ -1243,6 +1258,12 @@ function imprimirHtmlRenderizado(html) {
               height: 297mm !important;
               min-height: 297mm !important;
               overflow: hidden !important;
+              break-after: avoid !important;
+              page-break-after: avoid !important;
+            }
+            .secretaria-word-print-root .docx:not(:first-of-type),
+            .secretaria-word-print-root .docx-wrapper:not(:first-of-type) {
+              display: none !important;
             }
           </style>
         </head>
@@ -1252,6 +1273,7 @@ function imprimirHtmlRenderizado(html) {
       </html>
     `);
     doc.close();
+    compactarDocumentoDocxParaImpresion(doc);
 
     setTimeout(() => {
       iframe.contentWindow?.focus();
@@ -1262,6 +1284,26 @@ function imprimirHtmlRenderizado(html) {
       }, 1000);
     }, 350);
   });
+}
+
+function compactarDocumentoDocxParaImpresion(doc) {
+  const root = doc.querySelector(".secretaria-word-print-root");
+  if (!root) return;
+
+  prepararVistaDocxParaImpresion(root);
+  const wrapper = root.querySelector(".docx-wrapper");
+  const pagina = root.querySelector(".docx");
+  const contenido = pagina?.querySelector("article") || pagina;
+
+  if (!wrapper || !pagina || !contenido) return;
+
+  wrapper.style.height = "297mm";
+  wrapper.style.minHeight = "297mm";
+  wrapper.style.overflow = "hidden";
+  pagina.style.height = "297mm";
+  pagina.style.minHeight = "297mm";
+  pagina.style.overflow = "hidden";
+  ajustarDocxAUnaPagina(pagina, contenido);
 }
 
 function obtenerEstilosParaImpresion() {
